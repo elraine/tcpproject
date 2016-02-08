@@ -68,3 +68,11 @@ Acteurs : Client={Seeder, Leecher}, tracker
 - En tant que tracker, je veux avoir pour chaque fichier, la liste des seeders et leechers.
 - En tant que tracker, je veux pouvoir annoncer de nouveaux seeders.
 - En tant que tracker, je veux pouvoir mettre à jour les métadonnées d'un client suite à réception de la BufferMap.
+
+
+Taches : 
+
+1. trouver un nom
+2. structures fichiers de config, prototypes du tracker et du client
+3. 
+
