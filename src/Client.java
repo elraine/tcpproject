@@ -5,10 +5,13 @@ import java.net.InetAddress;
 
 
 public class Client implements Runnable{
-  //static final int port = 8080;
-static String inetcfg;
-static int port;
+String inetcfg;
+int port;
 
+public Client(String inetcfg, int port){
+  this.inetcfg = inetcfg;
+  this.port = port;
+}
   public void run(){
     InetAddress iadr = null;
     Socket socket = null;
@@ -63,14 +66,35 @@ static int port;
   }
 
   public static void main(String[] args) throws Exception{
-    if(args.length < 2 ){
-      System.out.println("GIVE ARGUMENTS MAGGOT");
-    }else{
-    inetcfg = args[0];
-    port = Integer.parseInt(args[1]);
-    Client obj = new Client();
+    String filename = "localhost";
+    String inetcfg = "localhost";
+    int port = 8080;
+
+    if(args.length <= 0 ){
+      System.out.println("give args : 0 if reading peers from file, 1 if giving args now. %n If 0 : follow the 0 with name of file. %n If 1 : 1 <ipadress> <port>");
+    }else if(Integer.parseInt(args[0]) == 0 && args.length < 3){
+//reads from file TODO
+      filename = args[1];
+      System.out.println("not implemented yet file name is "+filename);
+    }else if(Integer.parseInt(args[0]) == 1 && args.length < 4){
+    inetcfg = args[1];
+    Integer.parseInt(args[2]);
+  }else{
+    System.out.println("not good");
+    // System.exit();
+  }
+    Client obj = new Client(inetcfg, port);
+    //Thread test
+    // int baseport = 8080;
+    // int maxthr = 3;
+    // Client[] object;
+    // Thread thobj;
+    // for (int i = 0;i < 3 ; i++) {
+    //   object[i] = new Client("localhost", baseport +i);
+    //
+    // }
+
     Thread tobj = new Thread(obj);
     tobj.start();
     }
   }
-}
