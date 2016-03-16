@@ -5,19 +5,20 @@ import java.net.InetAddress;
 
 
 public class Client implements Runnable{
-String inetcfg;
-int port;
-String msg = "i";
+  String inetcfg;
+  int port;
+  String msg = "i";
 
-public Client(String inetcfg, int port){
-  this.inetcfg = inetcfg;
-  this.port = port;
-}
-public Client(String inetcfg, int port, String msg){
-  this.inetcfg = inetcfg;
-  this.port = port;
-  this.msg = msg;
-}
+  public Client(String inetcfg, int port){
+    this.inetcfg = inetcfg;
+    this.port = port;
+  }
+
+  public Client(String inetcfg, int port, String msg){
+    this.inetcfg = inetcfg;
+    this.port = port;
+    this.msg = msg;
+  }
   public void run(){
     InetAddress iadr = null;
     Socket socket = null;
