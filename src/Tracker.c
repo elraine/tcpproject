@@ -14,17 +14,7 @@
 #include <arpa/inet.h>
 #include "Seeded_file.h"
 #include "Seeder.h"
-
-typedef struct{
-	int portno;	
-	int sockfd;
-	struct sockaddr_in addr;
-	socklen_t clilen;
-
-	char *seeder_IP;
-}seeder;
-
-
+#include "List.h"
 
 
 void error(const char *msg) {
@@ -37,6 +27,8 @@ typedef struct{
 	int sockfd;
 	struct sockaddr_in addr;
 	
+	list* seeded_files;
+	
 }tracker;
 
 void *connection_handler(void *sockfd){
@@ -48,10 +40,11 @@ void *connection_handler(void *sockfd){
 	int nb_read;
 	
 	char* essai = "coucou me voila";
-	write(seed->sockfd , essai , strlen(essai));
+	write(seed.sockfd , essai , strlen(essai));
 	
-	while( (nb_read = recv(seed.sockfd, client_message , 2000 , 0)) > 0 ){
-		//TODO read
+	while( (nb_read = recv(seed.sockfd, buffer , 2000 , 0)) > 0 ){
+		//parse_message(buffer);
+		printf("message reçu : %s\n",buffer);
 	}
 	
 	if(nb_read==0){
@@ -60,7 +53,6 @@ void *connection_handler(void *sockfd){
 	return 0;
 }
 
-/*
 void parse_message(char* mess){
 	char *tmp;
 	tmp = strtok(mess," ");
@@ -83,7 +75,7 @@ void parse_message(char* mess){
 	//tmp = strtok(line," ");
 	//tmp = strtok(NULL," ");
 	//p->x=atof(tmp);
-}*/
+}
 
 void tracker_init(tracker *t, int portno){
 	
@@ -101,6 +93,8 @@ void tracker_init(tracker *t, int portno){
         error("ERROR on binding");
 	
 	puts("Binding done");
+	
+	t->seeded_files = list_empty();
 
 }
 
@@ -148,31 +142,3 @@ int main(int argc, char *argv[]){
      
     return 0;
 }
-	
-    /*
-    char buffer[256];
-    int n;
-    
-    listen(sockfd, 5);
-    clilen = sizeof(cli_addr);
-    newsockfd = accept(sockfd,(struct sockaddr *) &cli_addr,&clilen);
-    
-    if (newsockfd < 0)
-        error("ERROR on accept");
-        
-    bzero(buffer, 256);
-    n = read(newsockfd, buffer, 255);
-    
-    if (n < 0)
-		error("ERROR reading from socket");
-		
-    printf("Here is the message: %s\n", buffer);
-    n = write(newsockfd, "I got your message", 18);
-    
-    if (n < 0)
-		error("ERROR writing to socket");
-		
-    close(newsockfd);
-    close(sockfd);*/
-    
-
