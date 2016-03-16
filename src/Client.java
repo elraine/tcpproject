@@ -5,20 +5,80 @@ import java.net.InetAddress;
 
 
 public class Client implements Runnable{
-  String inetcfg;
-  int port;
-  String msg = "i";
+  private String inetcfg;
+  private int port;
+  private String msg = "i";
+
+  private String serverAddr;
+  private String serverPort;
+  private String sizePiece;
+
+  private Fichier[] files;
 
   public Client(String inetcfg, int port){
     this.inetcfg = inetcfg;
     this.port = port;
+    listFiles("../src");
   }
 
   public Client(String inetcfg, int port, String msg){
     this.inetcfg = inetcfg;
     this.port = port;
     this.msg = msg;
+    listFiles("../src");
   }
+
+  public void listFiles(String directoryName){
+    File directory = new File(directoryName);
+    File[] fileList = directory.listFiles();
+    int numberOfFiles = directory.listFiles().length;
+    int i = 0;
+
+    files = new Fichier[numberOfFiles];
+
+    for(File file : fileList){
+      if(file.isFile()){
+        files[i] = new Fichier(file.getName(), file.length());
+        i++;
+      }
+    }
+  }
+
+  public void configInit() throws FileNotFoundException{
+    String filePath="config.ini";
+    Scanner scan = new Scanner(new File(filePath));
+
+    while(scan.hasNextLine()){
+      String line = scan.nextLine();
+      if(line.contains("tracker-address")){
+        serverAddr = line.substring(18);
+      }
+      if(line.contains("tracker-port")){
+        serverPort = line.substring(15);
+      }
+      if(line.contains("piece-size")){
+        sizePiece = line.substring(13);
+      }
+    }
+    System.out.println("Server address is "+serverAddr+" and Server port is "+serverPort);
+  }
+
+  public void announceTracker(){
+    String portAnnounce;
+    String sizeAnnounce;
+
+    portAnnounce = serverPort;
+    sizeAnnounce = sizePiece;
+
+    System.out.printf("announce listen "+portAnnounce+" seed [");
+
+    for(Fichier file : files){
+      System.out.printf(file.name+" "+file.length+" "+sizeAnnounce+" "+file.key+" ");
+    }
+
+    System.out.println("]");
+  }
+
   public void run(){
     InetAddress iadr = null;
     Socket socket = null;
@@ -115,6 +175,15 @@ public class Client implements Runnable{
     Client object0 = new Client("localhost", 8080, "i am 0");
     Client object1 = new Client("localhost", 8080, "i am 1");
     Client object2 = new Client("localhost", 8080, "i am 2");
+
+    try{
+      c.configInit();
+    }
+    catch(FileNotFoundException f){
+      System.out.println("File not found");
+    }
+    c.announceTracker();
+    
     Thread to0 = new Thread(object0);
     Thread to1 = new Thread(object1);
     Thread to2 = new Thread(object2);
