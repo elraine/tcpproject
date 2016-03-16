@@ -19,8 +19,11 @@ default:server client
 server:Tracker.c List.o
 	$(CC) $(CFLAGS) -o $@ $^ -pthread
 
-client:
+client: fichier
 	$(JCC) $(JCFLAGS) Client.java
+
+fichier:
+		$(JCC) $(JCFLAGS) Fichier.java
 
 List.o:List.c
 	$(CC) $(CFLAGS) -o List.o -c List.c
