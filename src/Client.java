@@ -37,10 +37,10 @@ public class Client implements Runnable{
     files = new Fichier[numberOfFiles];
 
     for(File file : fileList){
-      if(file.isFile()){
+      //if(file.isFile()){
         files[i] = new Fichier(file.getName(), file.length());
         i++;
-      }
+      //}
     }
   }
 
