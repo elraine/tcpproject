@@ -7,7 +7,7 @@ JCC=javac
 
 .SUFFIXES: .java .class
 
-CLASSES = Client.java
+CLASSES = Client.java Fichier.java
 
 .java.class:
 		$(JCC) $(JCCFLAGS) $*.java
