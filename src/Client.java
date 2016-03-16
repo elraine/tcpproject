@@ -135,6 +135,7 @@ public class Client implements Runnable{
 
   public static void main(String[] args) throws Exception{
     String filename = "localhost";
+    //LOL CONFLIT
     String inetcfg = "localhost";
     int port = 8080;
 
