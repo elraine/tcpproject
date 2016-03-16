@@ -178,13 +178,13 @@ public class Client implements Runnable{
     Client object2 = new Client("localhost", 8080, "i am 2");
 
     try{
-      c.configInit();
+      object0.configInit();
     }
     catch(FileNotFoundException f){
       System.out.println("File not found");
     }
-    c.announceTracker();
-    
+    object0.announceTracker();
+
     Thread to0 = new Thread(object0);
     Thread to1 = new Thread(object1);
     Thread to2 = new Thread(object2);
