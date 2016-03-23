@@ -75,12 +75,12 @@ char* removeFirstCharacter(char* t){
 }
 
 int storeInfoSeeded(char *files, tracker *t, int portno){
-	if (info[0] != '\0'){
+	if (files[0] != '\0'){
 		char* tmp;
-		tmp = strtok(info," "); //tmp = filename1
+		tmp = strtok(files," "); //tmp = filename1
 		while(tmp != NULL){
 			seeded_file *file = malloc(sizeof(seeded_file));
-			file->seeder->portno = portno;
+			file->seeders->portno = portno;
 			file->file_name = tmp;
 			
 			tmp = strtok(NULL," ");
@@ -90,7 +90,7 @@ int storeInfoSeeded(char *files, tracker *t, int portno){
 			file->piece_size = atoi(tmp);
 
 			tmp = strtok(NULL," ");
-			file->key = atoi(tmp);
+			file->key = tmp;
 
 			element* el=element_init(file);
 			list_add_head(t->seeded_files, el);
@@ -163,6 +163,22 @@ int sfSize(seeded_file *sf){
    	return size;
 }
 
+
+char* getSfFilename(seeded_file *sf){
+	return sf->file_name;
+}
+
+int getSfFilesize(seeded_file *sf){
+	return sf->file_length;
+}
+
+int getSfPiecesize(seeded_file *sf){
+	return sf->piece_size;
+}
+
+char* getSfKey(seeded_file *sf){
+	return sf->key;	
+}
 /*
 Returns a string containing all seeded files verifying the listed criteria.
 Filename is required.
@@ -172,7 +188,7 @@ filesize>"..." | filesize<"..."           One of the two or none.
 piecesize>"..." | piecesize<"..."		  One of the two ir none.
 */
 char *searchFiles(tracker *t, char *criteria){
-	char **crit;
+	char* crit[3];
 	int i=0;
 	char *name;
 	char *tmp;
@@ -193,16 +209,16 @@ char *searchFiles(tracker *t, char *criteria){
 			name = strtok(NULL, "\"");
 		} else if (strcmp(tmp, "filesize<") ==0){   //then criteria is filesize<
 			isBiggerFile = -1;
-			fileSize = strtok(NULL, "\"");
+			fileSize = atoi(strtok(NULL, "\""));
 		} else if (strcmp(tmp, "filesize>") ==0){    //then criteria is filesize>
 			isBiggerFile = 1;
-			fileSize = strtok(NULL, "\"");
+			fileSize = atoi(strtok(NULL, "\""));
 		} else if (strcmp(tmp, "piecesize<") ==0){    //then criteria is piecesize<
 			isBiggerPiece = -1;
-			pieceSize = strtok(NULL, "\"");
+			pieceSize = atoi(strtok(NULL, "\""));
 		} else if (strcmp(tmp, "piecesize>") ==0){    //then criteria is piecesize<
 			isBiggerPiece = 1;
-			pieceSize = strtok(NULL, "\"");
+			pieceSize = atoi(strtok(NULL, "\""));
 		}
 	}
 
@@ -212,7 +228,7 @@ char *searchFiles(tracker *t, char *criteria){
 	list *matchingFiles =list_empty();
 	element *current = t->seeded_files->head;
 	while(!list_is_end_mark(current)){
-		if( (strcmp(current->data->file_name, name) ==0) && (isBiggerInt(current->data->file_length, filesize, isBiggerFile)) && (isBiggerInt(current->data->piece_size, pieceSize, isBiggerPiece)) ){
+		if( (strcmp(getSfFilename(current->data), name) ==0) && (isBiggerInt(getSfFilesize(current->data), fileSize, isBiggerFile)) && (isBiggerInt(getSfPiecesize(current->data), pieceSize, isBiggerPiece)) ){
 			list_add_head(matchingFiles, current);
 		}
 		current = current->next;
@@ -229,7 +245,7 @@ char *searchFiles(tracker *t, char *criteria){
 	}
 	retSize +=7;
 
-	current = t->matchingFiles->head;
+	current = 	matchingFiles->head;
 	char *ret = malloc(retSize*sizeof(char));
 	strcpy(ret, "list [");
 
@@ -273,16 +289,16 @@ int seederSize(seeded_file *s){
 Returns a list of seeders having file corresponding to key
 */
 char* searchSeeders(tracker *t, char* key){
-	list matchingFiles = list_empty();
+	list *matchingFiles = list_empty();
 	element *current = t->seeded_files->head;
 	while(!list_is_end_mark(current)){
-		if( (strcmp(current->data->key, key) ==0) ){
+		if( (strcmp(getSfKey(current->data), key) ==0) ){
 			list_add_head(matchingFiles, current);
 		}
 		current = current->next;
 	}
 
-	element *current = matchingFiles->head;
+		current = matchingFiles->head;
 	int retSize =0;
 	while (!list_is_end_mark(current)){
 		retSize += seederSize(current->data);
@@ -326,12 +342,12 @@ void parse_message(char* mess, tracker* t){
 
 		tmp = strtok(NULL, " "); //tmp = seed;
 		char *seeded;
-		seeded = removeFirstCharacter(strtok(NULL, ']')); //seeded = listOfFiles
+		seeded = removeFirstCharacter(strtok(NULL, "]")); //seeded = listOfFiles
 
-		token = strtok(NULL, s);
-		if (token[0] == 'l'){
-			char *leeched:
-			leeched = removeFirstCharacter(strtok(NULL, ']')); //leeched = listOfFiles
+		tmp = strtok(NULL, " ");
+		if (tmp[0] == 'l'){
+			char *leeched;
+			leeched = removeFirstCharacter(strtok(NULL, "]")); //leeched = listOfFiles
 		} //else no file leeched.
 
 		storeInfoSeeded(seeded, t, portno);
@@ -344,7 +360,7 @@ void parse_message(char* mess, tracker* t){
 		//TODO send reply to client
 		free(reply);
 	}
-	else if(strcpmp(tmp,"getfile") ==0){
+	else if(strcmp(tmp,"getfile") ==0){
 		tmp = strtok(NULL, " ");
 		char* reply = searchSeeders(t, tmp);
 		//TODO send reply to client
