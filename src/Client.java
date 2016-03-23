@@ -97,11 +97,12 @@ public class Client implements Runnable{
     try{
       socket = new Socket(iadr, port);
     }catch(IOException ie){
-      ie.printStackTrace();
+      //ie.printStackTrace();
+      System.out.println("Can't create socket "+socket+" : " +ie);
     }
-    System.out.println("Socket is " + socket);
 
     //ReadingInfos
+    try{
     try{
       plec = new BufferedReader(new InputStreamReader(socket.getInputStream()));
     }catch(IOException ie){
@@ -131,8 +132,10 @@ public class Client implements Runnable{
       ie.printStackTrace();
     }
 
+  }catch(Exception e){
+      System.out.println("No socket : "+e);
   }
-
+}
   public static void main(String[] args) throws Exception{
     String filename = "localhost";
     //LOL CONFLIT
@@ -174,8 +177,8 @@ public class Client implements Runnable{
     // }
 
     Client object0 = new Client("localhost", 8080, "i am 0");
-    Client object1 = new Client("localhost", 8080, "i am 1");
-    Client object2 = new Client("localhost", 8080, "i am 2");
+    Client object1 = new Client("localhost", 8081, "i am 1");
+    Client object2 = new Client("localhost", 8082, "i am 2");
 
     try{
       object0.configInit();

@@ -16,6 +16,7 @@
 #include "Seeder.h"
 #include "List.h"
 
+#define BUFFERSIZE 2000
 
 void error(const char *msg) {
     perror(msg);
@@ -36,15 +37,16 @@ void *connection_handler(void *sockfd){
 	seeder seed;
 	seed.sockfd = *(int*)sockfd;
 
-	char buffer[2000];
+	char buffer[BUFFERSIZE];
 	int nb_read;
 
 	char* essai = "coucou me voila";
 	write(seed.sockfd , essai , strlen(essai));
-
-	while( (nb_read = recv(seed.sockfd, buffer , 2000 , 0)) > 0 ){
+  printf("sockfd : %d",seed.sockfd);
+	while( (nb_read = recv(seed.sockfd, buffer , BUFFERSIZE , 0)) > 0 ){
 		//parse_message(buffer);
 		printf("message reçu : %s\n",buffer);
+    memset(buffer,(int)' ',BUFFERSIZE);
 	}
 
 	if(nb_read==0){
