@@ -7,27 +7,29 @@ JCC=javac
 
 .SUFFIXES: .java .class
 
-CLASSES = \
-        	Server.java \
-	        Client.java
+CLASSES = Client.java Fichier.java
 
 .java.class:
 		$(JCC) $(JCCFLAGS) $*.java
-
 
 all:default
 
 default:server client
 
-server:server.c
-	$(CC) $(CFLAGS) -o $@ $^
+server:Tracker.c List.o
+	$(CC) $(CFLAGS) -o $@ $^ -pthread
 
-client:client.java
-	$(JCC) $(JCFLAGS) $*.java
+client: fichier
+	$(JCC) $(JCFLAGS) Client.java
 
+fichier:
+		$(JCC) $(JCFLAGS) Fichier.java
+
+List.o:List.c
+	$(CC) $(CFLAGS) -o List.o -c List.c
 classes: $(CLASSES:.java=.class)
 
 
 
 clean:
-	rm -f 
+	rm -rf *.o *.class *.dSYM a.out
