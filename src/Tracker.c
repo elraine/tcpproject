@@ -68,37 +68,19 @@ void *connection_handler(void *s){
 	return 0;
 }
 
-/*
-Removes first character of string t.
-Used to remove '[' from the list of files in parser
-*/
-/*
-char* removeFirstCharacter(char* t){
-   int size =1;
-   char tmp;
-   tmp = t[0];
-   while(tmp != '\0'){     //get size of t
-      tmp=t[size];
-      size++;
-   }
-
-   char* ret=malloc(sizeof(char)*size);
-   for (int i=0; i<size; i++){
-      ret[i]=t[i+1];
-   }
-
-   return ret;
-}
-
-int storeInfoSeeded(char *files, tracker *t, int portno){
+int storeInfoSeeded(char *files, tracker *t, int portno){          //probably replace portno by seeder.
 	if (files[0] != '\0'){
 		char* tmp;
 		tmp = strtok(files," "); //tmp = filename1
 		while(tmp != NULL){
-			seeded_file *file = malloc(sizeof(seeded_file));
-			file->seeders->portno = portno;
-			file->file_name = tmp;
+			//seeder *seed = initSeederWithInfo();              need seeder
 
+			/*
+			file is a temporary seeded_file, used to check if the files uploaded by the user already exists in the database
+			*/
+			seeded_file *file = malloc(sizeof(seeded_file));    
+			file->file_name = tmp;
+			
 			tmp = strtok(NULL," ");
 			file->file_length = atoi(tmp);
 
@@ -108,8 +90,17 @@ int storeInfoSeeded(char *files, tracker *t, int portno){
 			tmp = strtok(NULL," ");
 			file->key = tmp;
 
-			element* el=element_init(file);
-			list_add_head(t->seeded_files, el);
+			element* search = list_sf_find(t->seeded_files, file);
+			if (search != NULL){
+				//list_add_head(search->seeders, seed);              need seeder.
+				free(file);             //temporary file is already in database : we can free it
+			} else {
+				file->seeders = list_empty();
+				//list_add_head(file->seeders, seed);               need seeder
+				
+				element* el=element_init(file);
+				list_add_head(t->seeded_files, el);
+			}
 
 			tmp = strtok(NULL," ");
 		}
@@ -117,93 +108,17 @@ int storeInfoSeeded(char *files, tracker *t, int portno){
 	return 0;
 }
 
-char* itoa(int a){
-	int tmp=a;
-	int size =1;
-	while ((tmp/10) >0){
-		size++;
-		tmp = tmp/10;
-	}
-
-	char* ret=malloc((size+1)*sizeof(char));
-	ret[size] ='\0';
-	size--;
-	tmp =a;
-	while(size >=0){
-		ret[size]=(tmp%10) + '0';
-		tmp = tmp/10;
-		size--;
-	}
-	return ret;
-}
-
-int stringSize(char* a){
-	int size=0;
-	while (a[size] != '\0'){
-		size++;
-	}
-	return size;
-}
-
-int isBiggerInt(int a, int b, int isBigger){
-	if (isBigger == 1){
-		return (a>=b);
-	} else if (isBigger == -1){
-		return (a<=b);
-	} else return 1;                                //if isBigger is unexpected returns true.
-}
-
-
-char* sfToChar(seeded_file *sf){
-   int size = stringSize(sf->file_name) + stringSize(itoa(sf->file_length)) + stringSize(itoa(sf->piece_size)) + stringSize(sf->key);
-   size+=4;                         //3spaces + \0
-
-   char* filesize = itoa(sf->file_length);
-   char* piecesize = itoa(sf->piece_size);
-   char* ret= malloc(size*sizeof(char));
-
-   strcpy(ret, sf->file_name);
-   strcat(ret, " ");
-   strcat(ret, filesize);
-   strcat(ret, " ");
-   strcat(ret, piecesize);
-   strcat(ret, " ");
-   strcat(ret, sf->key);
-
-   return ret;
-}
-
-int sfSize(seeded_file *sf){
-	int size = stringSize(sf->file_name) + stringSize(itoa(sf->file_length)) + stringSize(itoa(sf->piece_size)) + stringSize(sf->key);
-   	size+=4;                          //3spaces +\0 or 4 spaces
-   	return size;
-}
-
-
-char* getSfFilename(seeded_file *sf){
-	return sf->file_name;
-}
-
-int getSfFilesize(seeded_file *sf){
-	return sf->file_length;
-}
-
-int getSfPiecesize(seeded_file *sf){
-	return sf->piece_size;
-}
-
-char* getSfKey(seeded_file *sf){
-	return sf->key;
-}*/
 /*
 Returns a string containing all seeded files verifying the listed criteria.
 Filename is required.
 Authorised criteria are :
 filename="..."
 filesize>"..." | filesize<"..."           One of the two or none.
-piecesize>"..." | piecesize<"..."		  One of the two ir none.
+piecesize>"..." | piecesize<"..."		  One of the two or none.
+
+TODO : want to return a string following that sequence :
+
 */
-/*
 char *searchFiles(tracker *t, char *criteria){
 	char* crit[3];
 	int i=0;
@@ -239,9 +154,9 @@ char *searchFiles(tracker *t, char *criteria){
 		}
 	}
 
-	//
+	/*
 	Establish list of files matching criteria
-	
+	*/
 	list *matchingFiles =list_empty();
 	element *current = t->seeded_files->head;
 	while(!list_is_end_mark(current)){
@@ -251,9 +166,9 @@ char *searchFiles(tracker *t, char *criteria){
 		current = current->next;
 	}
 
-	
-	//Create a string ret = list[fileinfo1 fileinfo2]
-	
+	/*
+	Create a string ret = list[fileinfo1 fileinfo2]
+	*/	
 	current = matchingFiles->head;
 	int retSize =0;
 	while (!list_is_end_mark(current)){
@@ -277,82 +192,106 @@ char *searchFiles(tracker *t, char *criteria){
 		strcat(ret, tmp);
 	}
 	strcat(ret, "]");
-
+	
 	return ret;
 }
-*/
-/*
-char *getSeederInfo(seeded_file *s){
+
+
+//returns the size required to write ONE seeder info: 'IP:port'+1char (space or ']')
+int getSeederSize(seeder *s){
    int size=0;
-   size += stringSize(itoa(s->seeders->portno));
-   size += stringSize(s->seeders->seeder_IP);
-
-   char *ret = malloc((size+2)*sizeof(char));
-   strcpy(ret, itoa(s->seeders->portno));
-   strcat(ret, " \0");
-   strcat(ret, s->seeders->seeder_IP);
-
-   return ret;
-}
-
-int seederSize(seeded_file *s){
-   int size=0;
-   size+= stringSize(itoa(s->seeders->portno));
-   size+= stringSize(s->seeders->seeder_IP);
+   size+= stringSize(itoa(s->portno));
+   size+= stringSize(s->seeder_IP);
    size+= 2;
    return size;
 }
-*/
-/*
-Returns a list of seeders having file corresponding to key
-*/
-/*
-char* searchSeeders(tracker *t, char* key){
-	list *matchingFiles = list_empty();
-	element *current = t->seeded_files->head;
+
+//returns the size required to write ALL seeders : 'IP:port IP:port]\0' 
+int getSeedersSize(seeded_file *s){
+	int size=0;
+	element *current = malloc(sizeof(element));
+	current = s->seeders->head;
 	while(!list_is_end_mark(current)){
-		if( (strcmp(getSfKey(current->data), key) ==0) ){
-			list_add_head(matchingFiles, current);
-		}
-		current = current->next;
+		size+=getSeederSize(current->data);
+		current=current->next;
 	}
 
-		current = matchingFiles->head;
-	int retSize =0;
-	while (!list_is_end_mark(current)){
-		retSize += seederSize(current->data);
-		current = current->next;
-	}
-	retSize +=8;
+	size++;                                                   //space for '\0'
 
-	current = matchingFiles->head;
-	char *ret = malloc(retSize*sizeof(char));
-	strcpy(ret, "peers [");
+	return size;
+}
 
-	while (!list_is_end_mark(current->next)){
-		char* tmp = getSeederInfo(current->data);
-		strcat(ret, tmp);
-		strcat(ret, " ");
-		current = current->next;
-	}
-	if(!list_is_end_mark(current)){             //avoids having an extra " " before "]"
-		char* tmp = getSeederInfo(current->data);
-		strcat(ret, tmp);
-	}
-	strcat(ret, "]");
+//returns a char containt for a seeder s IP:port
+char* getSeederInfo(seeder *s){
+	int size= getSeederSize(s);
+	char *ret = malloc(sizeof(char)*size);
+
+	strcpy(ret, itoa(s->portno));
+	strcat(ret, inet_ntoa(s->addr.sin_addr));
+	strcat(ret, " \0");
 
 	return ret;
 }
+
+
+char *getSeedersInfo(seeded_file *s){
+	int size=getSeedersSize(s);
+	size+=stringSize(s->key);
+	char* ret=malloc(sizeof(char)*(size+8));   //8='peers ' (key) ' [' 
+
+	strcpy(ret, "peers ");
+	strcat(ret, s->key);
+	strcat(ret, " [");
+
+	element *current = malloc(sizeof(element));
+	current = s->seeders->head;
+	while(!list_is_end_mark(current)){
+		strcat(ret, getSeederInfo(current->data));
+	}
+
+	strcat(ret,"]");
+
+	return ret;
+}
+
+//returns a seeding_file* matching a key
+//returns NULL if not match is found
+//key is supposed unique (=> the first match found is returned)
+seeded_file* getSeededFileMatch(tracker *t, char* key){
+	element* current= malloc(sizeof(element));
+	current = t->seeded_files->head;
+
+	while(!list_is_end_mark(current)){
+		if(strcmp(getSfKey(current->data), key)==0){
+			return current->data;
+		}
+		current=current->next;
+	}
+	return NULL;
+}
+
+/*
+Returns a list of seeders having file corresponding to key
+
+peers $key$ [seederInfo(1) seederInfo(2)]
 */
+char* searchSeeders(tracker *t, char* key){
+	seeded_file* match = malloc(sizeof(seeded_file));
+	match = getSeededFileMatch(t,key);
+
+	char* ret=getSeedersInfo(match);
+	return ret;
+}
+
+
 /*
 Parses messages mess sent by the client, and stores the information in tracker t.
 Current version assumes correct syntax in the messages sent.
 */
-/*
 void parse_message(char* mess, tracker* t){
 	char *tmp;
 	tmp = strtok(mess," ");
-
+	
 	if(strcmp(tmp, "announce")==0){ //tmp = announce
 		int portno;
 		tmp = strtok(NULL," "); //tmp = listen
@@ -383,11 +322,12 @@ void parse_message(char* mess, tracker* t){
 		tmp = strtok(NULL, " ");
 		char* reply = searchSeeders(t, tmp);
 		//TODO send reply to client
-		free(reply);
+		free(reply);	
 	} else {
 		perror("Message non reconnu");
 	}
-}*/
+}
+
 
 void tracker_init(tracker *t, int portno){
 

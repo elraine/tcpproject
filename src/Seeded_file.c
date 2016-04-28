@@ -47,3 +47,61 @@ int seeded_file_look(seeded_file* sf,char* name, int filesize){
 		matching = 1;*/
 	return matching;
 }
+
+
+char* getSfFilename(seeded_file *sf){
+	return sf->file_name;
+}
+
+int getSfFilesize(seeded_file *sf){
+	return sf->file_length;
+}
+
+int getSfPiecesize(seeded_file *sf){
+	return sf->piece_size;
+}
+
+char* getSfKey(seeded_file *sf){
+	return sf->key;	
+}
+
+int sfSize(seeded_file *sf){
+	int size = stringSize(sf->file_name) + stringSize(itoa(sf->file_length)) + stringSize(itoa(sf->piece_size)) + stringSize(sf->key);
+   	size+=4;                          //3spaces +\0 or 4 spaces
+   	return size;
+}
+
+char* sfToChar(seeded_file *sf){
+   int size = stringSize(sf->file_name) + stringSize(itoa(sf->file_length)) + stringSize(itoa(sf->piece_size)) + stringSize(sf->key);
+   size+=4;                         //3spaces + \0
+
+   char* filesize = itoa(sf->file_length);
+   char* piecesize = itoa(sf->piece_size);
+   char* ret= malloc(size*sizeof(char));
+
+   strcpy(ret, sf->file_name);
+   strcat(ret, " ");
+   strcat(ret, filesize);
+   strcat(ret, " ");
+   strcat(ret, piecesize);
+   strcat(ret, " ");
+   strcat(ret, sf->key);
+
+   return ret;
+}
+
+
+
+element* list_sf_find(list *l, seeded_file *sf){
+	char* key = getSfKey(sf);
+
+	element* e = malloc(sizeof(element));
+	e = l->head;
+
+	while(!list_is_end_mark(e)){
+		if(strcmp(getSfKey(e->data), key) ==0)
+			return e;
+		e = e->next;
+	}
+	return NULL;
+}

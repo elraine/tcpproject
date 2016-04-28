@@ -23,4 +23,8 @@ void list_free(list *l);
 element* list_find(list* l, void* data);
 element* list_remove_data(list* l, void* data);
 
+char* itoa(int a);
+int stringSize(char* a);
+int isBiggerInt(int a, int b, int isBigger);
+char* removeFirstCharacter(char* t);
 #endif
