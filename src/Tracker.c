@@ -14,7 +14,6 @@
 #include "Seeded_file.h"
 #include "Seeder.h"
 #include "List.h"
-#include "Parser.h"
 #include "Tracker.h"
 #include "Utils.h"
 
@@ -59,6 +58,7 @@ void tracker_init(tracker *t, int portno){
 	t->addr.sin_family = AF_INET;
     t->addr.sin_addr.s_addr = htonl(INADDR_ANY);
     t->addr.sin_port = htons(portno);
+    t->portno = ntohs(t->addr.sin_port);
 
     if (bind(t->sockfd, (struct sockaddr *) &(t->addr), sizeof(t->addr)) < 0)
         error("ERROR on binding");
@@ -120,11 +120,20 @@ int tracker_store_info_seeded(char *files, tracker *t, int portno){          //p
 Parses messages mess sent by the client, and stores the information in tracker t.
 Current version assumes correct syntax in the messages sent.
 */
-void tracker_parse_message(char* mess, tracker* t){
-	char *tmp;
-	tmp = strtok(mess," ");
-	
+char* tracker_parse_message(char* mess, tracker* t){
+
+	printf("PARSE : %s\n",mess);
+
+	char* reply;
+
+	char* message_parsed = malloc(strlen(mess));
+    strcpy(message_parsed, mess);
+
+	char *tmp= strtok(message_parsed," ");
+
 	if(strcmp(tmp, "announce")==0){ //tmp = announce
+
+		
 		int portno;
 		tmp = strtok(NULL," "); //tmp = listen
 		tmp = strtok(NULL," "); //tmp = portno
@@ -136,28 +145,31 @@ void tracker_parse_message(char* mess, tracker* t){
 
 		tmp = strtok(NULL, " ");
 		if (tmp[0] == 'l'){
-			char *leeched;
-			leeched = removeFirstCharacter(strtok(NULL, "]")); //leeched = listOfFiles
+			//TODO decommenter lignes en dessous (fuck le warning de "set but not used")
+			//char *leeched;
+			//leeched = removeFirstCharacter(strtok(NULL, "]")); //leeched = listOfFiles
 		} //else no file leeched.
 
 		tracker_store_info_seeded(seeded, t, portno);
 		free(seeded);
 		//TODO store info leeched if leeched == 1
+		reply = "OK";
 	}
 	else if(strcmp(tmp, "look") ==0){
 		tmp = removeFirstCharacter(strtok(NULL, "]"));
-		char* reply = tracker_search_files(t, tmp);
+		reply = tracker_search_files(t, tmp);
 		//TODO send reply to client
-		free(reply);
+		//free(reply);
 	}
 	else if(strcmp(tmp,"getfile") ==0){
 		tmp = strtok(NULL, " ");
-		char* reply = tracker_search_seeders(t, tmp);
+		reply = tracker_search_seeders(t, tmp);
 		//TODO send reply to client
-		free(reply);	
+		//free(reply);	
 	} else {
-		perror("Message non reconnu");
+		reply = "Message non reconnu";
 	}
+	return reply;
 }
 
 /*
@@ -246,4 +258,11 @@ char *tracker_search_files(tracker *t, char *criteria){
 	strcat(ret, "]");
 	
 	return ret;
+}
+
+void tracker_free(tracker *t){
+
+	list_free(t->seeded_files);
+	list_free(t->seeders);
+
 }

@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "Seeded_file.h"
+#include "Seeder.h"
 
 seeded_file* seeded_file_init(char* name, unsigned int length, unsigned int piece_size, char* key){
 	
