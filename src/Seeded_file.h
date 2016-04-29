@@ -26,6 +26,8 @@ int sfSize(seeded_file *sf);
 char* sfToChar(seeded_file *sf);
 
 element* list_sf_find(list *l, seeded_file *sf);
+int seeded_file_get_size(seeded_file *s);
+char *seeded_file_get_info(seeded_file *s);
 
 #endif
 

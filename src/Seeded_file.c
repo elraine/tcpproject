@@ -48,6 +48,41 @@ int seeded_file_look(seeded_file* sf,char* name, int filesize){
 	return matching;
 }
 
+//returns the size required to write ALL seeders : 'IP:port IP:port]\0' 
+int seeded_file_get_size(seeded_file *s){
+	int size=0;
+	element *current = malloc(sizeof(element));
+	current = s->seeders->head;
+	while(!list_is_end_mark(current)){
+		size+=seeder_get_size(current->data);
+		current=current->next;
+	}
+
+	size++;//space for '\0'
+
+	return size;
+}
+
+char *seeded_file_get_info(seeded_file *s){
+	int size=seeded_file_get_size(s);
+	size+=stringSize(s->key);
+	char* ret=malloc(sizeof(char)*(size+8));   //8='peers ' (key) ' [' 
+
+	strcpy(ret, "peers ");
+	strcat(ret, s->key);
+	strcat(ret, " [");
+
+	element *current = malloc(sizeof(element));
+	current = s->seeders->head;
+	while(!list_is_end_mark(current)){
+		strcat(ret, seeder_get_info(current->data));
+	}
+
+	strcat(ret,"]");
+
+	return ret;
+}
+
 
 char* getSfFilename(seeded_file *sf){
 	return sf->file_name;
@@ -105,3 +140,4 @@ element* list_sf_find(list *l, seeded_file *sf){
 	}
 	return NULL;
 }
+

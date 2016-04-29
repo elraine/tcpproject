@@ -12,28 +12,39 @@ CLASSES = Client.java Fichier.java
 .java.class:
 		$(JCC) $(JCCFLAGS) $*.java
 
-all:default
+all: default
+default: server client
 
-default:server client
+#___________________________________________________SERVER
 
-server:Tracker.c List.o SeededF.o
+
+server: Main.c Utils.c Tracker.c List.o Seeder.o Seeded_File.o
 	$(CC) $(CFLAGS) -o $@ $^ -pthread
+
+Utils.o: Utils.c
+	$(CC) $(CFLAGS) -o Utils.o -c Utils.c
+
+Main.o: Tracker.c
+	$(CC) $(CFLAGS) -o Tracker.o -c Tracker.c
+
+List.o: List.c
+	$(CC) $(CFLAGS) -o List.o -c List.c
+
+Seeder.o: Seeder.c
+	$(CC) $(CFLAGS) -o Seeder.o -c Seeder.c
+
+Seeded_File.o: Seeded_file.c
+	$(CC) $(CFLAGS) -o Seeded_File.o -c Seeded_file.c
+
+#___________________________________________________CLIENT
 
 client: fichier
 	$(JCC) $(JCFLAGS) Client.java
 
 fichier:
-		$(JCC) $(JCFLAGS) Fichier.java
-
-List.o:List.c
-	$(CC) $(CFLAGS) -o List.o -c List.c
-
-SeededF.o:Seeded_file.c
-	$(CC) $(CFLAGS) -o SeededF.o -c Seeded_file.c
+	$(JCC) $(JCFLAGS) Fichier.java
 
 classes: $(CLASSES:.java=.class)
-
-
 
 clean:
 	rm -rf *.o *.class *.dSYM a.out

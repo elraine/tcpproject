@@ -10,5 +10,8 @@ typedef struct{
 	char *seeder_IP;
 }seeder;
 
+seeder* seeder_init(struct sockaddr_in seeder_addr, int seeder_sockfd, socklen_t c);
+int seeder_get_size(seeder *s);
+char* seeder_get_info(seeder *s);
 
 #endif
