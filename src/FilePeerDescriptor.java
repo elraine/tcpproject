@@ -2,16 +2,22 @@ import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+
 public class FilePeerDescriptor{
   String name;
   long length;
+  int pieceNumber;
   int pieceSize;
   String key;
+  int[] bm;
 
-  public FilePeerDescriptor(String fileName, long fileLength){
+  public FilePeerDescriptor(String fileName, long fileLength, int pieceSize){
     name = fileName;
     length = fileLength;
     key = encode(name);
+    this.pieceSize = pieceSize;
+    this.pieceNumber = ((int)fpd.length % fpd.pieceSize) + 1;
+    createBM();
   }
 
   private static String encode(String password){
@@ -37,9 +43,28 @@ public class FilePeerDescriptor{
     return hashString.toString();
   }
 
-  private static int BufferMap(){
-    int arrLength = length % pieceSize;
-    int bm = new int[arrlength+1];
-    return bm;
+//Create an appropriate sized BufferMap
+  private void createBM(){
+    this.bm = new int[Math.ceil(this.pieceNumber/8)];
+    this.bm={0};
   }
+
+
+  private int[] getBM(){
+    return this.bm;
+  }
+
+  private Bool isPieceCompleted(int t){
+    return (this.bm[t] == 1);
+
+  }
+  private int setCursorBM(int t){
+    if(this.bm[t] != 1){
+      this.bm[t] = 1;
+    }else{
+      return -1;
+    }
+    return 0;
+  }
+
 }

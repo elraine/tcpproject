@@ -182,13 +182,6 @@ public class Client implements Runnable{
     if(args.length < 2 ){
       System.out.println("usage : IPAdress port");
     }else{
-      /*
-      inetcfg = args[0];
-      port = Integer.parseInt(args[1]);
-      */
-      Client object1 = new Client("localhost", 8081, "i am 1");
-      Client object2 = new Client("localhost", 8082, "i am 2");
-
       try{
         object0.configInit();
       }
@@ -198,11 +191,7 @@ public class Client implements Runnable{
       object0.announceTracker();
 
       Thread to0 = new Thread(object0);
-      Thread to1 = new Thread(object1);
-      Thread to2 = new Thread(object2);
       to0.start();
-      to1.start();
-      to2.start();
 
 
       // Thread tobj = new Thread(obj);
