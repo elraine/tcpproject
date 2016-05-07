@@ -9,16 +9,21 @@
 #include <netinet/in.h>
 #include "Seeded_file.h"
 #include "Seeder.h"
+#include "Utils.h"
 
 seeded_file* seeded_file_init(char* name, unsigned int length, unsigned int piece_size, char* key){
 	
 	seeded_file* sf = malloc(sizeof(seeded_file*));
 	
-	sf->file_name = name;
+	sf->file_name = malloc(strlen(name));
+	strcpy(sf->file_name,name);
+
 	sf->file_length = length;
 	sf->piece_size = piece_size;
-	sf->key = key;
-	
+
+	sf->key = malloc(strlen(key));
+	strcpy(sf->key,key);
+
 	sf->seeders = list_empty();
 	return sf;
 }
@@ -65,21 +70,17 @@ int seeded_file_get_size(seeded_file *s){
 }
 
 char *seeded_file_get_info(seeded_file *s){
-	int size=seeded_file_get_size(s);
-	size+=stringSize(s->key);
-	char* ret=malloc(sizeof(char)*(size+8));   //8='peers ' (key) ' [' 
 
-	strcpy(ret, "peers ");
-	strcat(ret, s->key);
-	strcat(ret, " [");
+	char* ret;
+	asprintf(&ret,"peers %s [",s->key);
 
-	element *current = malloc(sizeof(element));
-	current = s->seeders->head;
+	element *current = s->seeders->head;
 	while(!list_is_end_mark(current)){
-		strcat(ret, seeder_get_info(current->data));
+		asprintf(&ret,"%s%s ",ret,seeder_get_info(current->data));
+		current=current->next;
 	}
 
-	strcat(ret,"]");
+	ret[strlen(ret)-1]=']';
 
 	return ret;
 }
@@ -102,37 +103,36 @@ char* getSfKey(seeded_file *sf){
 }
 
 int sfSize(seeded_file *sf){
-	int size = stringSize(sf->file_name) + stringSize(itoa(sf->file_length)) + stringSize(itoa(sf->piece_size)) + stringSize(sf->key);
+	int size = strlen(sf->file_name) + sf->file_length + sf->piece_size + strlen(sf->key) + sizeof(sf->seeders);
    	size+=4;                          //3spaces +\0 or 4 spaces
    	return size;
 }
 
 char* sfToChar(seeded_file *sf){
-   int size = stringSize(sf->file_name) + stringSize(itoa(sf->file_length)) + stringSize(itoa(sf->piece_size)) + stringSize(sf->key);
-   size+=4;                         //3spaces + \0
 
-   char* filesize = itoa(sf->file_length);
-   char* piecesize = itoa(sf->piece_size);
-   char* ret= malloc(size*sizeof(char));
+   char* buffer;
+   asprintf(&buffer,"%s %d %d %s",sf->file_name,sf->file_length,sf->piece_size,sf->key);
+   return buffer;
+}
 
-   strcpy(ret, sf->file_name);
-   strcat(ret, " ");
-   strcat(ret, filesize);
-   strcat(ret, " ");
-   strcat(ret, piecesize);
-   strcat(ret, " ");
-   strcat(ret, sf->key);
+element* seeded_file_seeder_find(list *l, seeder *s){
+	
+	element* e = l->head;
 
-   return ret;
+	while(!list_is_end_mark(e)){
+		if(e->data == s)
+			return e;
+		e = e->next;
+	}
+	return NULL;
 }
 
 
+element* seeded_file_find(list *l, seeded_file *sf){
 
-element* list_sf_find(list *l, seeded_file *sf){
 	char* key = getSfKey(sf);
 
-	element* e = malloc(sizeof(element));
-	e = l->head;
+	element* e = l->head;
 
 	while(!list_is_end_mark(e)){
 		if(strcmp(getSfKey(e->data), key) ==0)
@@ -142,3 +142,9 @@ element* list_sf_find(list *l, seeded_file *sf){
 	return NULL;
 }
 
+void seeded_file_free(seeded_file* sf){
+
+	free(sf->key);
+	free(sf->file_name);
+
+}

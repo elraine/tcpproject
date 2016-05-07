@@ -19,6 +19,8 @@
 #include "Utils.h"
 #define BUFFERSIZE 2000
 
+tracker track;
+
 
 void *connection_handler(void *s){
 
@@ -35,7 +37,7 @@ void *connection_handler(void *s){
 	
 	while( (nb_read = recv(seed->sockfd, buffer , BUFFERSIZE , 0)) > 0 ){
 		
-		//parse_message(buffer);
+		tracker_parse_message(buffer,&track,seed);
 		printf("message reçu : %s",buffer);
 		memset(buffer,(char)'\0',BUFFERSIZE);
 	}
@@ -54,28 +56,32 @@ int main(int argc, char *argv[]){
 
 	int c, seeder_sockfd;
 	struct sockaddr_in seeder_addr;
-	tracker track;
 	pthread_t thread_id;
 	
 	tracker_init(&track,atoi(argv[1]));
 	listen(track.sockfd, 5);
     c = sizeof(struct sockaddr_in);
 
+	mylog = fopen(LOGFILE, "a"); /* append logs to previous executions */
+	LOG("\n");
+	LOG("starting server %d\n", atoi(argv[1]));
+
 	while( (seeder_sockfd = accept(track.sockfd, (struct sockaddr *)&seeder_addr, (socklen_t*)&c)) ){
 
-		puts("Connection accepted");
-		
+		LOG("server : Connection accepted\n");
+
 		seeder* s = seeder_init(seeder_addr, seeder_sockfd, c);
 		tracker_add_seeder(&track,s);
 		
         if( pthread_create( &thread_id , NULL ,  connection_handler , s) < 0)
         {
-            error("ERROR on creating thread");
+
+            LOG("server : ERROR on creating thread");
             return 1;
         }
 
         //pthread_join( thread_id , NULL);
-        puts("Handler assigned");
+        LOG("server : Handler assigned");
     }
 
     if (seeder_sockfd < 0)

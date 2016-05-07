@@ -12,14 +12,16 @@ CLASSES = Client.java Fichier.java
 .java.class:
 		$(JCC) $(JCCFLAGS) $*.java
 
-all: default
-default: server client
+all: clean default
+default: serverc client
 
 #___________________________________________________SERVER
 
 
-server: Main.c Utils.c Tracker.c List.o Seeder.o Seeded_file.o
-	$(CC) $(CFLAGS) -o $@ $^ -pthread
+serverc: clean server 
+	
+server: Main.c Utils.o Tracker.o List.o Seeder.o Seeded_file.o
+	$(CC) $(CFLAGS) -o $@ $^ -lm -pthread
 
 Utils.o: Utils.c
 	$(CC) $(CFLAGS) -o Utils.o -c Utils.c

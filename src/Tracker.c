@@ -22,8 +22,8 @@
 //returns NULL if not match is found
 //key is supposed unique (=> the first match found is returned)
 seeded_file* tracker_get_matching_seeded_files(tracker *t, char* key){
-	element* current= malloc(sizeof(element));
-	current = t->seeded_files->head;
+
+	element* current = t->seeded_files->head;
 
 	while(!list_is_end_mark(current)){
 		if(strcmp(getSfKey(current->data), key)==0){
@@ -39,10 +39,9 @@ Returns a list of seeders having file corresponding to key
 peers $key$ [seederInfo(1) seederInfo(2)]
 */
 char* tracker_search_seeders(tracker *t, char* key){
-	seeded_file* match = malloc(sizeof(seeded_file));
-	match = tracker_get_matching_seeded_files(t,key);
 
-	char* ret=seeded_file_get_info(match);
+	seeded_file* matching_file = tracker_get_matching_seeded_files(t,key);
+	char* ret=seeded_file_get_info(matching_file);
 	return ret;
 }
 
@@ -52,7 +51,8 @@ void tracker_init(tracker *t, int portno){
 	t->sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (t->sockfd < 0)
 		error("ERROR opening socket");
-	puts("Socket created");
+	
+	LOG("server : Socket created\n");
 
 	bzero((char *) &(t->addr), sizeof(t->addr));
 	t->addr.sin_family = AF_INET;
@@ -63,7 +63,7 @@ void tracker_init(tracker *t, int portno){
     if (bind(t->sockfd, (struct sockaddr *) &(t->addr), sizeof(t->addr)) < 0)
         error("ERROR on binding");
 
-	puts("Binding done");
+	LOG("server : Binding done\n");
 
 	t->seeded_files = list_empty();
 	t->seeders = list_empty();
@@ -75,40 +75,42 @@ void tracker_add_seeder(tracker* t, seeder* s){
 }
 
 
-int tracker_store_info_seeded(char *files, tracker *t, int portno){          //probably replace portno by seeder.
+int tracker_store_info_seeded(char *files, tracker *t, seeder* seed){
 	if (files[0] != '\0'){
 		char* tmp;
 		tmp = strtok(files," "); //tmp = filename1
+
 		while(tmp != NULL){
-			//seeder *seed = initSeederWithInfo();              need seeder
-
-			/*
-			file is a temporary seeded_file, used to check if the files uploaded by the user already exists in the database
-			*/
-			seeded_file *file = malloc(sizeof(seeded_file));    
-			file->file_name = tmp;
 			
-			tmp = strtok(NULL," ");
-			file->file_length = atoi(tmp);
+			//file is a temporary seeded_file, used to check if the files uploaded by the user already exists in the database
 
-			tmp = strtok(NULL," ");
-			file->piece_size = atoi(tmp);
+			char* tmp_name = tmp;
+			int tmp_file_length = atoi(strtok(NULL," "));
+			int tmp_piece_size = atoi(strtok(NULL," "));
+			char* tmp_key = strtok(NULL," ");
 
-			tmp = strtok(NULL," ");
-			file->key = tmp;
+			seeded_file* file = seeded_file_init(tmp_name, tmp_file_length,tmp_piece_size, tmp_key);
 
-			element* search = list_sf_find(t->seeded_files, file);
+			element* search = seeded_file_find(t->seeded_files, file);
+
 			if (search != NULL){
-				//list_add_head(search->seeders, seed);              need seeder.
-				free(file);             //temporary file is already in database : we can free it
+				seeded_file* sf = search->data;
+				//si le seeder n'a pas ce fichier, on rajoute le seeder dans sf->seeders
+				element* seeder_search = seeded_file_seeder_find(sf->seeders,seed);
+				if(seeder_search == NULL){
+					seeded_file_add_seeder(sf,seed);
+				}
+				//TODO free marche pas ?
+				//seeded_file_free(file);
+				//free(file); //temporary file is already in database : we can free it				
+
 			} else {
+
 				file->seeders = list_empty();
-				//list_add_head(file->seeders, seed);               need seeder
-				
-				element* el=element_init(file);
+				seeded_file_add_seeder(file,seed);
+				element* el = element_init(file);
 				list_add_head(t->seeded_files, el);
 			}
-
 			tmp = strtok(NULL," ");
 		}
 	}
@@ -120,7 +122,7 @@ int tracker_store_info_seeded(char *files, tracker *t, int portno){          //p
 Parses messages mess sent by the client, and stores the information in tracker t.
 Current version assumes correct syntax in the messages sent.
 */
-char* tracker_parse_message(char* mess, tracker* t){
+char* tracker_parse_message(char* mess, tracker* t, seeder* s){
 
 	printf("PARSE : %s\n",mess);
 
@@ -131,40 +133,38 @@ char* tracker_parse_message(char* mess, tracker* t){
 
 	char *tmp= strtok(message_parsed," ");
 
-	if(strcmp(tmp, "announce")==0){ //tmp = announce
+	if(strcmp(tmp, "announce")==0){
 
-		
-		int portno;
 		tmp = strtok(NULL," "); //tmp = listen
 		tmp = strtok(NULL," "); //tmp = portno
-		portno = atoi(tmp);
+		tmp = strtok(NULL," "); //tmp = seed;
 
-		tmp = strtok(NULL, " "); //tmp = seed;
 		char *seeded;
 		seeded = removeFirstCharacter(strtok(NULL, "]")); //seeded = listOfFiles
+		char* seeded_first_word = malloc(strlen(seeded));
+		strcpy(seeded_first_word,seeded);
+		tmp = strtok(seeded_first_word," ");
 
-		tmp = strtok(NULL, " ");
 		if (tmp[0] == 'l'){
 			//TODO decommenter lignes en dessous (fuck le warning de "set but not used")
 			//char *leeched;
 			//leeched = removeFirstCharacter(strtok(NULL, "]")); //leeched = listOfFiles
 		} //else no file leeched.
 
-		tracker_store_info_seeded(seeded, t, portno);
-		free(seeded);
+		tracker_store_info_seeded(seeded, t, s);
+		//free(seeded);
+
 		//TODO store info leeched if leeched == 1
 		reply = "OK";
 	}
 	else if(strcmp(tmp, "look") ==0){
 		tmp = removeFirstCharacter(strtok(NULL, "]"));
 		reply = tracker_search_files(t, tmp);
-		//TODO send reply to client
 		//free(reply);
 	}
 	else if(strcmp(tmp,"getfile") ==0){
 		tmp = strtok(NULL, " ");
 		reply = tracker_search_seeders(t, tmp);
-		//TODO send reply to client
 		//free(reply);	
 	} else {
 		reply = "Message non reconnu";
@@ -264,5 +264,32 @@ void tracker_free(tracker *t){
 
 	list_free(t->seeded_files);
 	list_free(t->seeders);
+
+}
+
+
+
+void tracker_display_seeded_files(tracker* t){
+
+	element *current = malloc(sizeof(element*));
+	current = t->seeded_files->head;
+	printf("Seeded_files du tracker : \n");
+	
+	while(!list_is_end_mark(current)){
+
+		printf("\t%s\n",sfToChar((seeded_file*)(current->data)));
+
+		element *current_seeder = malloc(sizeof(element*));
+		current_seeder = ((seeded_file*)(current->data))->seeders->head;
+
+		while(!list_is_end_mark(current_seeder)){
+			printf("\t\t%s\n",seeder_to_string((seeder*)(current_seeder->data)));
+			current_seeder=current_seeder->next;
+		}
+
+		current = current->next;
+
+	}
+	free(current);
 
 }

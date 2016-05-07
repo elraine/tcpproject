@@ -2,6 +2,7 @@
 #define SEEDED_FILE_H
 #include "Seeder.h"
 #include "List.h"
+#include "Utils.h"
 #include <sys/socket.h>
 
 typedef struct{
@@ -28,9 +29,10 @@ char* getSfKey(seeded_file *sf);
 
 int sfSize(seeded_file *sf);
 char* sfToChar(seeded_file *sf);
+void seeded_file_free(seeded_file* sf);
 
-element* list_sf_find(list *l, seeded_file *sf);
-
+element* seeded_file_find(list *l, seeded_file *sf);
+element* seeded_file_seeder_find(list *l, seeder *s);
 
 #endif
 

@@ -17,7 +17,8 @@ seeder* seeder_init(struct sockaddr_in seeder_addr, int seeder_sockfd, socklen_t
 	s->clilen = c;
 	s->addr = seeder_addr;
 	s->sockfd = seeder_sockfd;
-	s->portno = ntohs(seeder_addr.sin_port);	
+	s->portno = ntohs(seeder_addr.sin_port);
+	s->seeder_IP = inet_ntoa(seeder_addr.sin_addr);
 	return s;
 }
 
@@ -25,21 +26,24 @@ seeder* seeder_init(struct sockaddr_in seeder_addr, int seeder_sockfd, socklen_t
 //returns the size required to write ONE seeder info: 'IP:port'+1char (space or ']')
 int seeder_get_size(seeder *s){
    int size=0;
-   size+= stringSize(itoa(s->portno));
-   size+= stringSize(s->seeder_IP);
+   size+= strlen(itoa(s->portno));
+   size+= strlen(s->seeder_IP);
    size+= 2;
    return size;
 }
 
 //returns a char containt for a seeder s IP:port
 char* seeder_get_info(seeder *s){
-	int size= seeder_get_size(s);
-	char *ret = malloc(sizeof(char)*size);
-
-	strcpy(ret, itoa(s->portno));
-	strcat(ret, inet_ntoa(s->addr.sin_addr));
-	strcat(ret, " \0");
-
+	
+	char *ret;
+	asprintf(&ret,"%s:%d",s->seeder_IP,s->portno);
 	return ret;
+}
+
+char* seeder_to_string(seeder *s){
+
+   char* buffer;
+   asprintf(&buffer,"seeder : %d:%s",s->sockfd,s->seeder_IP);
+   return buffer;
 }
 
