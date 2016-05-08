@@ -36,52 +36,18 @@ void seeded_file_add_seeder(seeded_file* sf, seeder* s){
 void seeded_file_remove_seeder(seeded_file* sf, seeder* s){
 	
 	list_remove_data(sf->seeders,s);
-	//free ?
-}
-
-int seeded_file_look(seeded_file* sf,char* name, int filesize){
-	int matching = 0;
-	printf("name : %s\n",name);
-	printf("file_name : %s\n",sf->file_name);
-	if(name != NULL){
-		
-		printf("ploopppppp\n");
-	}
-	if(name != NULL && !strcmp(sf->file_name,name))
-		matching = 1;
-	/*if(filesize!=(-1) && filesize == sf->file_length)
-		matching = 1;*/
-	return matching;
-}
-
-//returns the size required to write ALL seeders : 'IP:port IP:port]\0' 
-int seeded_file_get_size(seeded_file *s){
-	int size=0;
-	element *current = malloc(sizeof(element));
-	current = s->seeders->head;
-	while(!list_is_end_mark(current)){
-		size+=seeder_get_size(current->data);
-		current=current->next;
-	}
-
-	size++;//space for '\0'
-
-	return size;
 }
 
 char *seeded_file_get_info(seeded_file *s){
 
 	char* ret;
 	asprintf(&ret,"peers %s [",s->key);
-
 	element *current = s->seeders->head;
 	while(!list_is_end_mark(current)){
 		asprintf(&ret,"%s%s ",ret,seeder_get_info(current->data));
 		current=current->next;
 	}
-
 	ret[strlen(ret)-1]=']';
-
 	return ret;
 }
 
@@ -102,13 +68,7 @@ char* getSfKey(seeded_file *sf){
 	return sf->key;	
 }
 
-int sfSize(seeded_file *sf){
-	int size = strlen(sf->file_name) + sf->file_length + sf->piece_size + strlen(sf->key) + sizeof(sf->seeders);
-   	size+=4;                          //3spaces +\0 or 4 spaces
-   	return size;
-}
-
-char* sfToChar(seeded_file *sf){
+char* seeded_file_to_string(seeded_file *sf){
 
    char* buffer;
    asprintf(&buffer,"%s %d %d %s",sf->file_name,sf->file_length,sf->piece_size,sf->key);

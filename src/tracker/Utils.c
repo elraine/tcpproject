@@ -22,7 +22,6 @@ char* itoa(int a){
 		size++;
 		tmp = tmp/10;
 	}
-
 	char* ret=malloc((size+1)*sizeof(char));
 	ret[size] ='\0';
 	size--;
@@ -40,7 +39,6 @@ int number_of_digits(int a){
 }
 
 
-
 int isBiggerInt(int a, int b, int isBigger){
 	if (isBigger == 1){
 		return (a>=b);
@@ -54,18 +52,11 @@ Removes first character of string t.
 Used to remove '[' from the list of files in parser
 */
 char* removeFirstCharacter(char* t){
-   int size =1;
-   char tmp;
-   tmp = t[0];
-   while(tmp != '\0'){     //get size of t
-      tmp=t[size];
-      size++;
-   }
 
+   int size = strlen(t);
    char* ret=malloc(sizeof(char)*size);
    for (int i=0; i<size; i++){
       ret[i]=t[i+1];
    }
-
    return ret;
 }

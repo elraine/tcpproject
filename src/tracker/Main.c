@@ -21,7 +21,6 @@
 
 tracker track;
 
-
 void *connection_handler(void *s){
 
 	seeder* seed = (seeder*)s;
@@ -38,12 +37,9 @@ void *connection_handler(void *s){
 
 		write(seed->sockfd , reply , strlen(reply));
 		memset(buffer,(char)'\0',BUFFERSIZE);
-		free(reply);
-
 	}
 
 	if(nb_read==0){
-
         LOG("server : Client disconnected\n");
         fflush(stdout);
 	}

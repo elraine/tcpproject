@@ -17,9 +17,7 @@ seeded_file* seeded_file_init(char* name, unsigned int length, unsigned int piec
 
 void seeded_file_add_seeder(seeded_file* f, seeder* s);
 void seeded_file_remove_seeder(seeded_file* f, seeder* s);
-int seeded_file_look(seeded_file* f,char* name, int filesize);
 
-int seeded_file_get_size(seeded_file *s);
 char *seeded_file_get_info(seeded_file *s);
 
 char* getSfFilename(seeded_file *sf);
@@ -27,8 +25,7 @@ int getSfFilesize(seeded_file *sf);
 int getSfPiecesize(seeded_file *sf);
 char* getSfKey(seeded_file *sf);
 
-int sfSize(seeded_file *sf);
-char* sfToChar(seeded_file *sf);
+char* seeded_file_to_string(seeded_file *sf);
 void seeded_file_free(seeded_file* sf);
 
 element* seeded_file_find(list *l, seeded_file *sf);
