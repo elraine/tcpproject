@@ -1,8 +1,51 @@
-import java.util.*;
-import java.io.*;
-import java.nio.file.Files;
+package tomateCuiteTorrent;
 
+/* Class to represente the others peers in memory */
+public class Peer{
+	private String address;
+	private int port;
 
+	public Peer(String address, int port){
+		this.address = address;
+		this.port = port;
+	}
+
+	public String getAddress(){
+		return address;
+	}
+
+	public int getPort(){
+		return port;
+	}
+
+	public void setAddress(String address){
+		this.address = address;
+	}
+
+	public void setPort(int port){
+		this.port = port;
+	}
+
+	/* Compare two peers together */
+	public boolean equals(Object obj){
+		if(this == obj)
+			return true;
+		if(obj == null)
+			return false;
+		if(this.getClass() != obj.getClass())
+			return false;
+
+		Peer p = (Peer) obj;
+
+		if(!(this.address.equals(p.address)))
+			return false;
+		if(!(this.port != p.port))
+			return false;
+		return true;
+	}
+}
+
+/*
 public class Peer {
 
 	public Peer(){}
@@ -90,4 +133,4 @@ public class Peer {
 
 	return 0;
 }
-}
+}*/
