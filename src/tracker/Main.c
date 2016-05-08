@@ -26,24 +26,26 @@ void *connection_handler(void *s){
 
 	seeder* seed = (seeder*)s;
 	
-	printf("essai portno : %d\n", seed->portno);
-	printf("essai addr IP : %s\n", inet_ntoa( seed->addr.sin_addr));
-
 	char buffer[BUFFERSIZE];
-	int nb_read;
-	char* essai = "coucou me voila";
-	
-	write(seed->sockfd , essai , strlen(essai));
+	int nb_read;	
 	
 	while( (nb_read = recv(seed->sockfd, buffer , BUFFERSIZE , 0)) > 0 ){
 		
-		tracker_parse_message(buffer,&track,seed);
-		printf("message reçu : %s",buffer);
+		char* reply = tracker_parse_message(buffer,&track,seed);
+		if(strcmp(reply,"error")==0){
+			LOG("server : unknown command\n");
+		}
+
+		write(seed->sockfd , reply , strlen(reply));
 		memset(buffer,(char)'\0',BUFFERSIZE);
+		free(reply);
+
 	}
 
 	if(nb_read==0){
-		//connection terminée
+
+        LOG("server : Client disconnected\n");
+        fflush(stdout);
 	}
 	return 0;
 }
@@ -54,17 +56,17 @@ int main(int argc, char *argv[]){
 
 	if (argc != param+1) usage(argv[0]);
 
+	mylog = fopen(LOGFILE, "w");
+	LOG("\n");
+	LOG("starting server %d\n", atoi(argv[1]));
+
 	int c, seeder_sockfd;
 	struct sockaddr_in seeder_addr;
 	pthread_t thread_id;
-	
 	tracker_init(&track,atoi(argv[1]));
+
 	listen(track.sockfd, 5);
     c = sizeof(struct sockaddr_in);
-
-	mylog = fopen(LOGFILE, "a"); /* append logs to previous executions */
-	LOG("\n");
-	LOG("starting server %d\n", atoi(argv[1]));
 
 	while( (seeder_sockfd = accept(track.sockfd, (struct sockaddr *)&seeder_addr, (socklen_t*)&c)) ){
 
@@ -80,7 +82,7 @@ int main(int argc, char *argv[]){
             return 1;
         }
 
-        //pthread_join( thread_id , NULL);
+        pthread_join( thread_id , NULL);
         LOG("server : Handler assigned");
     }
 
@@ -89,6 +91,9 @@ int main(int argc, char *argv[]){
         error("ERROR on accepting connexion");
         return 1;
     }
+
+	fclose(mylog);
+    tracker_free(&track);
 
     return 0;
 }

@@ -15,7 +15,7 @@
 #include "Seeded_file.h"
 #include "Seeder.h"
 
-// gcc -Wall test_tracker.c Seeder.o Tracker.o Seeded_file.o List.o
+// gcc -Wall test_tracker.c Tracker.o Seeded_file.o List.o Seeder.o Utils.o -lm
 
 static int int_port = 2000;
 
@@ -128,7 +128,7 @@ static void test_tracker_getfile(){
 int main()
 {
 
-	mylog = fopen(LOGFILE, "a"); /* append logs to previous executions */
+	mylog = fopen(LOGFILE, "w");
 	LOG("\n");
 	LOG("starting server test_tracker\n");
 
@@ -137,6 +137,9 @@ int main()
 	test_tracker_announce();
 	test_tracker_look();
 	test_tracker_getfile();
+
+	fclose(mylog);
+
 
 	return 0;
 }

@@ -11,6 +11,7 @@
 #include <netinet/in.h>
 #include <pthread.h>
 #include <arpa/inet.h>
+
 #include "Seeded_file.h"
 #include "Seeder.h"
 #include "List.h"
@@ -49,9 +50,10 @@ char* tracker_search_seeders(tracker *t, char* key){
 void tracker_init(tracker *t, int portno){
 
 	t->sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
 	if (t->sockfd < 0)
 		error("ERROR opening socket");
-	
+
 	LOG("server : Socket created\n");
 
 	bzero((char *) &(t->addr), sizeof(t->addr));
@@ -167,7 +169,7 @@ char* tracker_parse_message(char* mess, tracker* t, seeder* s){
 		reply = tracker_search_seeders(t, tmp);
 		//free(reply);	
 	} else {
-		reply = "Message non reconnu";
+		reply = "error";
 	}
 	return reply;
 }
