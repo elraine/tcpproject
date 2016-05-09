@@ -53,7 +53,7 @@ public class Protocol{
         connector.closeConnection();
     }
 
-    private boolean pLook(String[] criterion) {
+    private ArrayList<FilePeerDescriptor> pLook(String[] criterion) {
         //look [ $Criterion1 $Criterion2  ...]
         //serv : list [ $Filename1 $Length1 $PieceSize1 $Key1  $Filename2 $Length2 $PieceSize2 $Key2 ...]
 
@@ -61,15 +61,34 @@ public class Protocol{
 //        filesize>"..." | filesize<"..."           One of the two or none.
 //        piecesize>"..." | piecesize<"..."		  One of the two or none.
 
+        FileStorage fs = FileStorage.getInstance();
+        ArrayList<FilePeerDescriptor> afpd = new ArrayList<FilePeerDescriptor>();
+
         String toserv = "look ";
         for (int i = 0; i < criterion.length; i++) {
-
+            toserv += criterion[i];
         }
         System.out.println(toserv);
 
+        String servanswer = (new Scanner(System.in)).nextLine();
+        String[] peerpart = {""};
 
-        String getStr = (new Scanner(System.in)).nextLine();
-        return getStr.startsWith("list");
+
+        String debut = "list [";
+        if (servanswer.startsWith(debut)) {
+            peerpart = servanswer.split("\\[", 2);
+        }
+        String[] fileList = peerpart[1].split(" ");
+        for (int i = 0; i < peerpart.length-3; i++) {
+            String name = fileList[i];
+            int length = Integer.valueOf(fileList[i+1]);
+            int pieceSize =  Integer.valueOf(fileList[i+2]);
+            String key = fileList[i+3];
+            i+=3;
+            afpd.add(new FilePeerDescriptor(name,key,length,pieceSize));
+        }
+
+        return afpd;
     }
     private ArrayList<Peer> pGetFile(String key) {
         //getfile  $Key
