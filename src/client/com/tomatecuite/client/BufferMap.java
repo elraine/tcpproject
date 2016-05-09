@@ -1,5 +1,7 @@
 package com.tomatecuite.client;
 
+import com.tomatecuite.*;
+import java.util.*;
 import java.util.BitSet;
 
 /* Héritage de BitSet, classe qui représente un tableau de bits dont on peut adapter la taille */

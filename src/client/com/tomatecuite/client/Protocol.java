@@ -1,5 +1,7 @@
 package com.tomatecuite.client;
 
+import com.tomatecuite.*;
+import java.util.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +52,7 @@ public class Protocol{
         connector.closeConnection();
     }
 
-    private boolean pLook() {
+    private boolean pLook(String[] criterion) {
         //look [ $Criterion1 $Criterion2  ...]
         //serv : list [ $Filename1 $Length1 $PieceSize1 $Key1  $Filename2 $Length2 $PieceSize2 $Key2 ...]
 
@@ -58,8 +60,12 @@ public class Protocol{
 //        filesize>"..." | filesize<"..."           One of the two or none.
 //        piecesize>"..." | piecesize<"..."		  One of the two or none.
 
-//        String toserv = "look ";
-//        System.out.println(toserv);
+        String toserv = "look ";
+        for (int i = 0; i < criterion.length; i++) {
+
+        }
+        System.out.println(toserv);
+
 
         String getStr = (new Scanner(System.in)).nextLine();
         return getStr.startsWith("list");
