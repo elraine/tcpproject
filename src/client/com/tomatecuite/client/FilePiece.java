@@ -1,4 +1,7 @@
 package com.tomatecuite.client;
+import com.tomatecuite.*;
+import java.util.*;
+import java.io.*;
 
 public class FilePiece implements Comparable<FilePiece>{
     private int position;

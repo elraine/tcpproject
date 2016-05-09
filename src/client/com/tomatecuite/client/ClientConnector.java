@@ -1,6 +1,7 @@
 package com.tomatecuite.client;
 
-
+import com.tomatecuite.*;
+import java.util.*;
 import java.io.*;
 import java.math.BigInteger;
 import java.net.Socket;

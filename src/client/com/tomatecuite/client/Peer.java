@@ -1,5 +1,9 @@
 package com.tomatecuite.client;
 
+import com.tomatecuite.*;
+import java.util.*;
+import java.io.*;
+
 /* Class to represente the others peers in memory */
 class Peer{
 	private String address;
