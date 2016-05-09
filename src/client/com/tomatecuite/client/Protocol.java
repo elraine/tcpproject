@@ -17,6 +17,8 @@ public class Protocol{
         FileStorage fs = FileStorage.getInstance();
         String announce = "announce listen " + portNo + " seed ";
         List<FilePeerDescriptor> lfpd = fs.getFilesList();
+        List<FilePeerDescriptor> llfpd = fs.getLeechList();
+
         for (int i = 0; i < lfpd.size(); i++) {
             announce = announce + ( lfpd.get(i)).getName()+ " "
                     + Integer.toString(lfpd.get(i).getFileSize()) + " "
@@ -25,7 +27,9 @@ public class Protocol{
         }
         announce += " leech ";
 
-        //TODO Leech list
+        for (int i = 0; i < lfpd.size(); i++) {
+            announce += llfpd.get(i).getKey() + " ";
+        }
 
         System.out.println(announce);
 
@@ -166,8 +170,10 @@ private class TaskRepeating extends TimerTask{
         }
 
         toserv += " leech ";
-
-        //TODO leechList
+        List<FilePeerDescriptor> llfpd = fs.getLeechList();
+        for (int i = 0; i < lfpd.size(); i++) {
+            toserv += llfpd.get(i).getKey() + " ";
+        }
 
         return true;
     }
