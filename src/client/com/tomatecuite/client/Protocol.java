@@ -30,15 +30,16 @@ public class Protocol{
         int hostPort = Configuration.getInstance().getPropertyAsInt(Constants.PEER_PORT_KEY, 0);
 
         FileStorage fs = FileStorage.getInstance();
-        String announce = "announce listen " + hostPort + " seed ";
+        String announce = "announce listen " + hostPort + " seed [";
 
         for (int i = 0; i < seededFiles.size(); i++) {
-            announce = announce + "[" + ( seededFiles.get(i)).getName()+ " "
+            announce +=  ( seededFiles.get(i)).getName()+ " "
                     + Integer.toString(seededFiles.get(i).getFileSize()) + " "
                     + String.valueOf(seededFiles.get(i).getPieceSize()) + " "
-                    + seededFiles.get(i).getKey() + " ";
+                    + seededFiles.get(i).getKey()+" ";
         }
         announce = announce + "]";
+
 
         connector.initConnection();
         connector.write(announce);
