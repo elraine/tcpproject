@@ -30,6 +30,12 @@ public class FileStorage{
     private Map<String, FilePeerDescriptor> files;
 
     private FileStorage() {
+        try{
+            digest = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e){
+            throw new Error("No MD5 support in this VM.");
+        }
+
         rootFolder = new File(ROOT_FOLDER_PATH);
         if (!(rootFolder.isDirectory())) {
             throw new IllegalArgumentException();
@@ -39,11 +45,6 @@ public class FileStorage{
         // Create the seeded files list by browsing the local storage directory
         refreshSeededFilesList();
 
-        try{
-            digest = MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException e){
-            throw new Error("No MD5 support in this VM.");
-        }
     }
 
     static FileStorage getInstance() {

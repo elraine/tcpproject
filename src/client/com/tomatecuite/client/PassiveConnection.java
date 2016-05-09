@@ -41,6 +41,7 @@ public class PassiveConnection extends Thread {
         }
     }
 
+    /* create a socket to the tracket */
     private ServerSocketChannel createSocketChannel(InetSocketAddress host) throws IOException{
         // Create a non-blocking socket channel
         ServerSocketChannel sChannel = ServerSocketChannel.open();
@@ -71,7 +72,7 @@ public class PassiveConnection extends Thread {
             // Process each key at a time
             while (it.hasNext()) {
                 // Get the selection key
-                SelectionKey selKey = (SelectionKey) it.next();
+                SelectionKey selKey = it.next();
                 // Remove it from the list to indicate that it is being
                 // processed
                 it.remove();

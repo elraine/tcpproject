@@ -6,25 +6,46 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Protocol{
+    private static Protocol instance;
 
-    private boolean pAnnounce(int portNo){
+    public Protocol() {
+    }
+
+    public static Protocol getInstance() {
+        if (instance == null)
+            instance = new Protocol();
+        return instance;
+    }
+
+
+    public void pAnnounce(ClientConnector connector,
+                              List<FilePeerDescriptor> seededFiles, List<FilePeerDescriptor> leechedFiles) throws InvalidAnswerException {
         //announce  listen  $Port  seed [ $Filename1 $Length1 $PieceSize1 $Key1  $Filename2 $Length2 $PieceSize2 $Key2 ...]  leech [ $Key3  $Key4 ...]
         //awaits a "OK" from server
-        FileStorage fs = FileStorage.getInstance();
-        String announce = "announce listen " + portNo + " seed ";
-        List<FilePeerDescriptor> lfpd = fs.getFilesList();
-        for (int i = 0; i < lfpd.size(); i++) {
-            announce = announce + ( lfpd.get(i)).getName()+ " "
-                    + Integer.toString(lfpd.get(i).getFileSize()) + " "
-                    + String.valueOf(lfpd.get(i).getPieceSize()) + " "
-                    + lfpd.get(i).getKey() + " ";
-        }
-        announce += " leech ";
+        int hostPort = Configuration.getInstance().getPropertyAsInt(Constants.PEER_PORT_KEY, 0);
 
-        System.out.println(announce);
-        //listen to serv
-        String getStr = (new Scanner(System.in)).nextLine();
-        return getStr.equalsIgnoreCase("OK");
+        FileStorage fs = FileStorage.getInstance();
+        String announce = "announce listen " + hostPort + " seed ";
+
+        for (int i = 0; i < seededFiles.size(); i++) {
+            announce = announce + "[" + ( seededFiles.get(i)).getName()+ " "
+                    + Integer.toString(seededFiles.get(i).getFileSize()) + " "
+                    + String.valueOf(seededFiles.get(i).getPieceSize()) + " "
+                    + seededFiles.get(i).getKey() + " ";
+        }
+        announce = announce + "]";
+
+        connector.initConnection();
+        connector.write(announce);
+        String response = connector.read();
+
+        if (response == null
+                || !response.startsWith(InputMessagesPatternsBundle._OK_CST)) {
+            throw new InvalidAnswerException(response);
+        }
+
+        // Close connection with the tracker
+        connector.closeConnection();
     }
 
     private boolean pLook() {
@@ -75,7 +96,7 @@ public class Protocol{
         }
         BufferMap bm = fpd.getBufferMap();
         if(peerpart.length > 1){
-           BufferMap.stringToBufferMap(peerpart[2]);
+           bm.stringToBufferMap(peerpart[2]);
         }
         return true;
     }
