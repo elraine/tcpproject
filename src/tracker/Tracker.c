@@ -127,7 +127,6 @@ Current version assumes correct syntax in the messages sent.
 char* tracker_parse_message(char* mess, tracker* t, seeder* s){
 
 	LOG("server message recu : %s\n",mess);
-	printf("message recu :%s\n",mess);
 	char* reply;
 	char* message_parsed = malloc(strlen(mess));
     strcpy(message_parsed, mess);
@@ -142,19 +141,6 @@ char* tracker_parse_message(char* mess, tracker* t, seeder* s){
 		char *seeded = removeFirstCharacter(strtok(NULL, "]")); //seeded = listOfFiles
 		tracker_store_info_seeded(seeded, t, s);
 
-		/*
-		char* seeded_first_word = malloc(strlen(seeded));
-		strcpy(seeded_first_word,seeded);
-		tmp = strtok(seeded_first_word," ");
-		if (tmp[0] == 'l'){
-			//char *leeched;
-			//leeched = removeFirstCharacter(strtok(NULL, "]")); //leeched = listOfFiles
-		} //else no file leeched.
-		//free(seeded);
-		//TODO store info leeched if leeched == 1
-		free(seeded_first_word);
-		*/
-
 		reply = "OK";
 	}
 	else if(strcmp(tmp, "look") ==0){
@@ -167,7 +153,7 @@ char* tracker_parse_message(char* mess, tracker* t, seeder* s){
 	} else {
 		reply = "error";
 	}
-	free(message_parsed);
+	//free(message_parsed);
 	return reply;
 }
 

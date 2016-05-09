@@ -28,22 +28,27 @@ void *connection_handler(void *s){
 	char buffer[BUFFERSIZE];
 	int nb_read;	
 	char* mess_bienv = "Bienvenue sur le tracker, vous pouvez maintenant rechercher des fichiers par critères ou par key";
+	printf("Nouveau Client : %s:%d\n",seed->seeder_IP,seed->portno);
+	LOG("Nouveau Client : %s:%d\n",seed->seeder_IP,seed->portno);
 
 	while( (nb_read = recv(seed->sockfd, buffer , BUFFERSIZE , 0)) > 0 ){
 		
+		printf("message recu \n: %s\n",buffer);
 		char* reply = tracker_parse_message(buffer,&track,seed);
 		if(strcmp(reply,"error")==0){
 			LOG("server : unknown command\n");
 		}
 
+		printf("reponse envoyé\n : %s\n",reply);		
 		write(seed->sockfd , mess_bienv , strlen(mess_bienv));
 		write(seed->sockfd , reply , strlen(reply));
-		
+
 		memset(buffer,(char)'\0',BUFFERSIZE);
 	}
 
 	if(nb_read==0){
-        LOG("server : Client disconnected\n");
+		LOG("Client %s:%d disconnected\n",seed->seeder_IP,seed->portno);
+        LOG("Client %s:%d disconnected\n",seed->seeder_IP,seed->portno);
         fflush(stdout);
 	}
 	return 0;
@@ -58,6 +63,7 @@ int main(int argc, char *argv[]){
 	mylog = fopen(LOGFILE, "w");
 	LOG("\n");
 	LOG("starting server %d\n", atoi(argv[1]));
+	printf("Starting server %d\n", atoi(argv[1]));
 
 	int c, seeder_sockfd;
 	struct sockaddr_in seeder_addr;
@@ -81,7 +87,7 @@ int main(int argc, char *argv[]){
             return 1;
         }
 
-        pthread_join( thread_id , NULL);
+        //pthread_join( thread_id , NULL);
         LOG("server : Handler assigned");
     }
 
