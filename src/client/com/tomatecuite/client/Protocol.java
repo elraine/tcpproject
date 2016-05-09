@@ -4,6 +4,8 @@ package com.tomatecuite.client;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Protocol{
     private static Protocol instance;
@@ -85,6 +87,8 @@ public class Protocol{
     private boolean pInterested(String key, FilePeerDescriptor fpd) {
         // interested  $Key
         //have  $Key  $BufferMap
+        FileStorage fs = FileStorage.getInstance();
+
         String toserv = "interested " + key;
         System.out.println(toserv);
 
@@ -95,12 +99,27 @@ public class Protocol{
             peerpart = servanswer.split(" ", 3);
         }
         BufferMap bm = fpd.getBufferMap();
+        BufferMap receivedBm = new BufferMap();
         if(peerpart.length > 1){
-           bm.stringToBufferMap(peerpart[2]);
+            receivedBm.stringToBufferMap(peerpart[2]);
         }
-        return true;
+        int rbm = receivedBm.cardinality();
+        if(rbm > bm.cardinality()){
+            fs.addLeechedFile(fpd);
+            return true;
+        }
+        return false;
     }
-    private boolean pGetPieces(){
+
+
+private boolean sendRegularInterval(FilePeerDescriptor fpd) throws Exception{
+    Timer t = new Timer("Vador", true);
+    int updateValue =  Integer.valueOf(Constants.UPDATE_FREQUENCY_KEY);
+    try {
+        t.scheduleAtFixedRate(new TaskRepeating(fpd), 30000, updateValue * 60 * 1000);
+    }catch(Exception e){
+        e.printStackTrace();
+    }
     return true;
     }
 

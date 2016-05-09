@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -76,6 +77,22 @@ public class FileStorage{
 
     public List<FilePeerDescriptor> getFilesList() {
         return new ArrayList<FilePeerDescriptor>(getFilesMap().values());
+    }
+
+    public List<FilePeerDescriptor> getLeechList(){
+        FileStorage fs = FileStorage.getInstance();
+
+        ArrayList<FilePeerDescriptor> afpd = new ArrayList<FilePeerDescriptor>();
+        List<FilePeerDescriptor> lfpd = fs.getFilesList();
+        BufferMap bm;
+        for (int i = 0; i < lfpd.size(); i++) {
+            bm = lfpd.get(i).getBufferMap();
+            BufferMap emptyBm = new BufferMap(bm.getSizeBufferMap());
+            emptyBm.clear();
+            bm.xor(emptyBm);
+            if(bm.isEmpty()) afpd.add(lfpd.get(i));
+        }
+        return afpd;
     }
 
     private Map<String, FilePeerDescriptor> getFilesMap() {
