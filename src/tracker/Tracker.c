@@ -244,6 +244,7 @@ char *tracker_search_files(tracker *t, char *criteria){
 	}
 
 	ret[strlen(ret)-1]=']';
+
 	return ret;
 }
 
