@@ -54,7 +54,12 @@ public class Protocol{
         //look [ $Criterion1 $Criterion2  ...]
         //serv : list [ $Filename1 $Length1 $PieceSize1 $Key1  $Filename2 $Length2 $PieceSize2 $Key2 ...]
 
-        //TODO criterion ?
+//        filename="..."
+//        filesize>"..." | filesize<"..."           One of the two or none.
+//        piecesize>"..." | piecesize<"..."		  One of the two or none.
+
+//        String toserv = "look ";
+//        System.out.println(toserv);
 
         String getStr = (new Scanner(System.in)).nextLine();
         return getStr.startsWith("list");
@@ -121,14 +126,75 @@ private boolean sendRegularInterval(FilePeerDescriptor fpd) throws Exception{
         e.printStackTrace();
     }
     return true;
+}
+
+
+
+private class TaskRepeating extends TimerTask{
+    FilePeerDescriptor fpd;
+
+    public TaskRepeating(FilePeerDescriptor fpd) {
+        this.fpd = fpd;
     }
 
-    private boolean pHave(){
-    return true;
+    public void run(){
+        System.out.println("Roar, i am the timer");
+        pHave(this.fpd);
+        pUpdateToTracker();
+    }
+
+    private boolean pHave(FilePeerDescriptor fpd){
+        //< have $ Key  $BufferMap
+        //> have  $Key  $BufferMap
+
+        FileStorage fs = FileStorage.getInstance();
+
+        String toserv = "have " + fpd.getKey() + " " + fpd.getBufferMap().getStringForm();
+        System.out.println(toserv);
+
+        String servanswer = (new Scanner(System.in)).nextLine();
+        String debut = "have " + fpd.getKey();
+        String[] peerpart={""};
+        if(servanswer.startsWith(debut)) {
+            peerpart = servanswer.split(" ", 3);
+        }
+
+        BufferMap bm = fpd.getBufferMap();
+        BufferMap receivedBm = new BufferMap();
+        if(peerpart.length > 1){
+            receivedBm.stringToBufferMap(peerpart[2]);
+        }
+        int rbm = receivedBm.cardinality();
+        if(rbm > bm.cardinality()){
+            fs.addLeechedFile(fpd);
+            return true;
+        }
+        return false;
     }
 
     private boolean pUpdateToTracker(){
-    return true;
+//        < update  seed [$ Key1 $Key2 $Key3 ...] leech [ $Key10 $Key11 $Key12 ... ]
+        FileStorage fs = FileStorage.getInstance();
+        List<FilePeerDescriptor> lfpd = fs.getFilesList();
+        String toserv = "update seed [";
+        for (int i = 0; i < lfpd.size(); i++) {
+            toserv += lfpd.get(i) + " ";
+        }
+
+        toserv += ']';
+        toserv += " leech ";
+        List<FilePeerDescriptor> llfpd = fs.getLeechList();
+        for (int i = 0; i < lfpd.size(); i++) {
+            toserv += llfpd.get(i).getKey() + " ";
+        }
+
+        return true;
     }
+}
+
+
+
+
+
 
 }
