@@ -31,10 +31,14 @@ void *connection_handler(void *s){
 	printf("Nouveau Client \t: %s:%d\n",seed->seeder_IP,seed->portno);
 	LOG("Nouveau Client \t: %s:%d\n",seed->seeder_IP,seed->portno);
 
+	char* mess;
+
 	while( (nb_read = recv(seed->sockfd, buffer , BUFFERSIZE , 0)) > 0 ){
-		
+			
 		printf("message recu \t: %s\n",buffer);
-		char* reply = tracker_parse_message(buffer,&track,seed);
+		asprintf(&mess,"%s\n",reply);
+
+		char* reply = tracker_parse_message(mess,&track,seed);
 		if(strcmp(reply,"error")==0){
 			LOG("server : unknown command\n");
 		}
