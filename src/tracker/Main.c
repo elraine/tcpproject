@@ -27,7 +27,8 @@ void *connection_handler(void *s){
 	
 	char buffer[BUFFERSIZE];
 	int nb_read;	
-	
+	char* mess_bienv = "Bienvenue sur le tracker, vous pouvez maintenant rechercher des fichiers par critères ou par key";
+
 	while( (nb_read = recv(seed->sockfd, buffer , BUFFERSIZE , 0)) > 0 ){
 		
 		char* reply = tracker_parse_message(buffer,&track,seed);
@@ -35,7 +36,9 @@ void *connection_handler(void *s){
 			LOG("server : unknown command\n");
 		}
 
+		write(seed->sockfd , mess_bienv , strlen(mess_bienv));
 		write(seed->sockfd , reply , strlen(reply));
+		
 		memset(buffer,(char)'\0',BUFFERSIZE);
 	}
 
