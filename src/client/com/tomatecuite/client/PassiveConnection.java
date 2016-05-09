@@ -23,6 +23,7 @@ import java.util.regex.Matcher;
  * Created by Romain on 09/05/2016.
  */
 public class PassiveConnection extends Thread {
+    public static PassiveConnection instance;
     private static final int _MAXIMUM_CONNECTED_PEERS = Configuration
             .getInstance().getPropertyAsInt(
                     Constants.MAXIMUM_CONNECTED_PEERS_KEY, 5);

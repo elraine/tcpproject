@@ -106,7 +106,7 @@ public class FileStorage{
         return files;
     }
 
-    private File createLeechedFile(FilePeerDescriptor file) {
+    File createLeechedFile(FilePeerDescriptor file) {
 
         if (file.getName() == null || file.getName().isEmpty()) {
             throw new IllegalArgumentException();
