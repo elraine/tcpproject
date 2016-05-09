@@ -127,6 +127,7 @@ Current version assumes correct syntax in the messages sent.
 char* tracker_parse_message(char* mess, tracker* t, seeder* s){
 
 	LOG("server message recu : %s\n",mess);
+	printf("message recu :%s\n",mess);
 	char* reply;
 	char* message_parsed = malloc(strlen(mess));
     strcpy(message_parsed, mess);
