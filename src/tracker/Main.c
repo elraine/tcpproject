@@ -28,19 +28,18 @@ void *connection_handler(void *s){
 	char buffer[BUFFERSIZE];
 	int nb_read;	
 	char* mess_bienv = "Bienvenue sur le tracker, vous pouvez maintenant rechercher des fichiers par critères ou par key";
-	printf("Nouveau Client : %s:%d\n",seed->seeder_IP,seed->portno);
-	LOG("Nouveau Client : %s:%d\n",seed->seeder_IP,seed->portno);
+	printf("Nouveau Client \t: %s:%d\n",seed->seeder_IP,seed->portno);
+	LOG("Nouveau Client \t: %s:%d\n",seed->seeder_IP,seed->portno);
 
 	while( (nb_read = recv(seed->sockfd, buffer , BUFFERSIZE , 0)) > 0 ){
 		
-		printf("message recu \n: %s\n",buffer);
+		printf("message recu \t: %s\n",buffer);
 		char* reply = tracker_parse_message(buffer,&track,seed);
 		if(strcmp(reply,"error")==0){
 			LOG("server : unknown command\n");
 		}
 
-		printf("reponse envoyé\n : %s\n",reply);		
-		write(seed->sockfd , mess_bienv , strlen(mess_bienv));
+		printf("reponse envoyé\t: %s\n",reply);		
 		write(seed->sockfd , reply , strlen(reply));
 
 		memset(buffer,(char)'\0',BUFFERSIZE);
