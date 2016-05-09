@@ -24,7 +24,7 @@ public class Protocol{
 
 
     public void pAnnounce(ClientConnector connector,
-                              List<FilePeerDescriptor> seededFiles, List<FilePeerDescriptor> leechedFiles) throws InvalidAnswerException {
+                          List<FilePeerDescriptor> seededFiles, List<FilePeerDescriptor> leechedFiles) throws InvalidAnswerException {
         //announce  listen  $Port  seed [ $Filename1 $Length1 $PieceSize1 $Key1  $Filename2 $Length2 $PieceSize2 $Key2 ...]  leech [ $Key3  $Key4 ...]
         //awaits a "OK" from server
         int hostPort = Configuration.getInstance().getPropertyAsInt(Constants.PEER_PORT_KEY, 0);
@@ -143,84 +143,108 @@ public class Protocol{
     }
 
 
-private boolean sendRegularInterval(FilePeerDescriptor fpd) throws Exception{
-    Timer t = new Timer("Vador", true);
-    int updateValue =  Integer.valueOf(Constants.UPDATE_FREQUENCY_KEY);
-    try {
-        t.scheduleAtFixedRate(new TaskRepeating(fpd), 30000, updateValue * 60 * 1000);
-    }catch(Exception e){
-        e.printStackTrace();
-    }
-    return true;
-}
-
-
-
-private class TaskRepeating extends TimerTask{
-    FilePeerDescriptor fpd;
-
-    public TaskRepeating(FilePeerDescriptor fpd) {
-        this.fpd = fpd;
-    }
-
-    public void run(){
-        System.out.println("Roar, i am the timer");
-        pHave(this.fpd);
-        pUpdateToTracker();
-    }
-
-    private boolean pHave(FilePeerDescriptor fpd){
-        //< have $ Key  $BufferMap
-        //> have  $Key  $BufferMap
-
-        FileStorage fs = FileStorage.getInstance();
-
-        String toserv = "have " + fpd.getKey() + " " + fpd.getBufferMap().getStringForm();
-        System.out.println(toserv);
-
-        String servanswer = (new Scanner(System.in)).nextLine();
-        String debut = "have " + fpd.getKey();
-        String[] peerpart={""};
-        if(servanswer.startsWith(debut)) {
-            peerpart = servanswer.split(" ", 3);
+    private boolean sendRegularInterval(FilePeerDescriptor fpd) throws Exception{
+        Timer t = new Timer("Vador", true);
+        int updateValue =  Integer.valueOf(Constants.UPDATE_FREQUENCY_KEY);
+        try {
+            t.scheduleAtFixedRate(new TaskRepeating(fpd), 30000, updateValue * 60 * 1000);
+        }catch(Exception e){
+            e.printStackTrace();
         }
-
-        BufferMap bm = fpd.getBufferMap();
-        BufferMap receivedBm = new BufferMap();
-        if(peerpart.length > 1){
-            receivedBm.stringToBufferMap(peerpart[2]);
-        }
-        int rbm = receivedBm.cardinality();
-        if(rbm > bm.cardinality()){
-            fs.addLeechedFile(fpd);
-            return true;
-        }
-        return false;
-    }
-
-    private boolean pUpdateToTracker(){
-//        < update  seed [$ Key1 $Key2 $Key3 ...] leech [ $Key10 $Key11 $Key12 ... ]
-        FileStorage fs = FileStorage.getInstance();
-        List<FilePeerDescriptor> lfpd = fs.getFilesList();
-        String toserv = "update seed [";
-        for (int i = 0; i < lfpd.size(); i++) {
-            toserv += lfpd.get(i) + " ";
-        }
-
-        toserv += ']';
-        toserv += " leech ";
-        List<FilePeerDescriptor> llfpd = fs.getLeechList();
-        for (int i = 0; i < lfpd.size(); i++) {
-            toserv += llfpd.get(i).getKey() + " ";
-        }
-
         return true;
     }
-}
 
+    private class TaskRepeating extends TimerTask{
+        FilePeerDescriptor fpd;
 
+        public TaskRepeating(FilePeerDescriptor fpd) {
+            this.fpd = fpd;
+        }
 
+        public void run(){
+            System.out.println("Roar, i am the timer");
+            pHave(this.fpd);
+            //pUpdateToTracker();
+        }
 
+        private boolean pHave(FilePeerDescriptor fpd){
+            //< have $ Key  $BufferMap
+            //> have  $Key  $BufferMap
 
+            FileStorage fs = FileStorage.getInstance();
 
+            String toserv = "have " + fpd.getKey() + " " + fpd.getBufferMap().getStringForm();
+            System.out.println(toserv);
+
+            String servanswer = (new Scanner(System.in)).nextLine();
+            String debut = "have " + fpd.getKey();
+            String[] peerpart={""};
+            if(servanswer.startsWith(debut)) {
+                peerpart = servanswer.split(" ", 3);
+            }
+
+            BufferMap bm = fpd.getBufferMap();
+            BufferMap receivedBm = new BufferMap();
+            if(peerpart.length > 1){
+                receivedBm.stringToBufferMap(peerpart[2]);
+            }
+            int rbm = receivedBm.cardinality();
+            if(rbm > bm.cardinality()){
+                fs.addLeechedFile(fpd);
+                return true;
+            }
+            return false;
+        }
+
+        private void pUpdateToTracker(ClientConnector connector, List<FilePeerDescriptor> seededFiles,
+                                         List<FilePeerDescriptor> leechedFiles) throws InvalidAnswerException{
+            // < update  seed [$ Key1 $Key2 $Key3 ...] leech [ $Key10 $Key11 $Key12 ... ]
+            // Connect to the tracker
+            connector.initConnection();
+
+            // Send announcement
+            connector.write(getUpdateMessage(seededFiles, leechedFiles));
+
+            // Read the response
+            String response = connector.read();
+
+            // Handle the response
+            if (response == null
+                    || response.startsWith(InputMessagesPatternsBundle._OK_CST) == false) {
+                throw new InvalidAnswerException(response);
+            }
+
+            // Close connection with the tracker
+            connector.closeConnection();
+        }
+
+        public String getUpdateMessage(List<FilePeerDescriptor> seededFiles,
+                                       List<FilePeerDescriptor> leechedFiles) {
+
+            StringBuilder update = new StringBuilder();
+
+            update.append("update seed [");
+            int i = 0;
+            if (seededFiles != null) {
+                for (FilePeerDescriptor file : seededFiles) {
+                    update.append(file.getKey());
+                    if (i++ < seededFiles.size() - 1) {
+                        update.append(" ");
+                    }
+                }
+            }
+            update.append("] leech [");
+            i = 0;
+            if (leechedFiles != null) {
+                for (FilePeerDescriptor file : leechedFiles) {
+                    update.append(file.getKey());
+                    if (i++ < seededFiles.size() - 1) {
+                        update.append(" ");
+                    }
+                }
+            }
+            update.append("]");
+            return update.toString();
+        }
+    }
 }

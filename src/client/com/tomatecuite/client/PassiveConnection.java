@@ -288,6 +288,91 @@ public class PassiveConnection extends Thread {
         return message.toString();
     }
 
+    public List<FilePeerDescriptor> getRequestedTrackerFileList(String inputMessage) {
+
+        List<FilePeerDescriptor> files = new ArrayList<FilePeerDescriptor>();
+
+        Matcher fileListMatcher = InputMessagesPatternsBundle._FILE_LIST_PATTERN
+                .matcher(inputMessage);
+        // 1. Launch regular expression analysis on the input and check if the
+        // content of the file list is present
+        if (!fileListMatcher.matches() || fileListMatcher.groupCount() == 0) {
+            return null;
+        }
+        // 2. Check if the content of the file list is well formed
+        String[] listComponents = fileListMatcher.group(1).split("\\s");
+        if (listComponents.length % Constants.FILE_ARGS_NUMBER != 0) {
+            return null;
+        }
+
+        // 3. Check file descriptor(s) type(s) and pattern(s), then retrieves
+        // content
+        StringBuilder fileDescription;
+        for (int i = 0; i < listComponents.length; i += Constants.FILE_ARGS_NUMBER) {
+
+            fileDescription = new StringBuilder();
+            fileDescription.append(listComponents[i] + " ");
+            fileDescription.append(listComponents[i + 1] + " ");
+            fileDescription.append(listComponents[i + 2] + " ");
+            fileDescription.append(listComponents[i + 3]);
+
+            // 3.1 Launch regular expression analysis on file descriptor(s)
+            Matcher fileDecriptorMatcher = InputMessagesPatternsBundle._FILE_LIST_COMPONENT_PATTERN
+                    .matcher(fileDescription.toString());
+
+            if (!fileDecriptorMatcher.matches()
+                    || fileDecriptorMatcher.groupCount() != Constants.FILE_ARGS_NUMBER) {
+                return null;
+            }
+
+            // 3.2 Retrieve file descriptor component
+            String name = fileDecriptorMatcher.group(1);
+            int size = Integer.parseInt(fileDecriptorMatcher.group(2));
+            int fragmentSize = Integer.parseInt(fileDecriptorMatcher.group(3));
+            String key = fileDecriptorMatcher.group(4);
+
+            // 3.3 Add the file into the list
+            files.add(new FilePeerDescriptor(key, name, size, fragmentSize, null));
+        }
+
+        return files;
+    }
+
+    /**
+     * Retrieves a list of peers received from the tracker
+     *
+     * @param inputMessage
+     * @return
+     */
+
+    public List<Peer> getRequestedPeerList(String inputMessage) {
+
+        List<Peer> peers = new ArrayList<Peer>();
+
+        Matcher peersListMatcher = InputMessagesPatternsBundle._PEERS_LIST_PATTERN
+                .matcher(inputMessage);
+
+        // 1. Launch regular expression analysis on the input and check if the
+        // content of the peer list is present
+        if (peersListMatcher.matches() == false
+                || peersListMatcher.groupCount() == 0) {
+            return null;
+        }
+
+        // 2. Get peer list
+        String peersList = peersListMatcher.group(1);
+        String[] ips = peersList.split("\\s");
+
+        // 3. Add peers to the result list
+        for (String ip : ips) {
+            String address = ip.substring(0, ip.indexOf(":"));
+            int port = Integer.parseInt(ip.substring(ip.indexOf(":") + 1));
+            peers.add(new Peer(address, port));
+        }
+
+        return peers;
+    }
+
     public String cleanMessage(String message) {
         return message.replaceAll("\\n", "").replaceAll("\\r", "");
     }
