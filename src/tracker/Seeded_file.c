@@ -80,8 +80,9 @@ element* seeded_file_seeder_find(list *l, seeder *s){
 	element* e = l->head;
 
 	while(!list_is_end_mark(e)){
-		if(e->data == s)
+		if(seeder_is_equals((seeder*)e->data,s)){
 			return e;
+		}
 		e = e->next;
 	}
 	return NULL;
