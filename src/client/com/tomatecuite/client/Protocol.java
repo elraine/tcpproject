@@ -50,7 +50,7 @@ public class Protocol{
 
     }
 
-    private ArrayList<FilePeerDescriptor> pLook(ClientConnector connector, String[] criterion) {
+    private ArrayList<FilePeerDescriptor> pLook(ActiveConnection connector, String[] criterion) {
         //look [ $Criterion1 $Criterion2  ...]
         //serv : list [ $Filename1 $Length1 $PieceSize1 $Key1  $Filename2 $Length2 $PieceSize2 $Key2 ...]
 
@@ -117,7 +117,7 @@ public class Protocol{
         return arPeer;
     }
 
-    private boolean pInterested(ClientConnector connector, String key, FilePeerDescriptor fpd) {
+    private boolean pInterested(ActiveConnection connector, String key, FilePeerDescriptor fpd) {
         // interested  $Key
         //have  $Key  $BufferMap
         FileStorage fs = FileStorage.getInstance();
@@ -147,7 +147,7 @@ public class Protocol{
     }
 
 
-    private boolean sendRegularInterval(ClientConnector connector, FilePeerDescriptor fpd) throws Exception{
+    private boolean sendRegularInterval(ActiveConnection connector, FilePeerDescriptor fpd) throws Exception{
         Timer t = new Timer("Vador", true);
         int updateValue =  Integer.valueOf(Constants.UPDATE_FREQUENCY_KEY);
         try {
@@ -160,9 +160,9 @@ public class Protocol{
 
     private class TaskRepeating extends TimerTask{
         FilePeerDescriptor fpd;
-        ClientConnector connector;
+        ActiveConnection connector;
 
-        public TaskRepeating(ClientConnector connector,FilePeerDescriptor fpd) {
+        public TaskRepeating(ActiveConnection connector,FilePeerDescriptor fpd) {
             this.fpd = fpd;
             this.connector = connector;
         }
@@ -173,7 +173,7 @@ public class Protocol{
             //pUpdateToTracker();
         }
 
-        private boolean pHave(ClientConnector connector, FilePeerDescriptor fpd){
+        private boolean pHave(ActiveConnection connector, FilePeerDescriptor fpd){
             //< have $ Key  $BufferMap
             //> have  $Key  $BufferMap
 
