@@ -1,14 +1,16 @@
 package com.tomatecuite.client;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
  * Created by Valtira on 10/05/2016.
  */
 public class LogWriter extends Throwable {
-    File f;
-    PrintWriter pw;
+    private File f;
+    private PrintWriter pw;
+    private String logName;
 
     private static LogWriter instance;
 
@@ -22,16 +24,34 @@ public class LogWriter extends Throwable {
         return pw;
     }
 
-    public LogWriter() {
+    private LogWriter() {
+        logName = "LogWriter.log";
         try {
-            f = new File("LogWriter.log");
+            f = new File(logName);
+            try {
+                f.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             pw = new PrintWriter(f);
         }catch(java.io.FileNotFoundException e) {
             e.printStackTrace(pw);
         }
     }
 
-    public void writeToLog(String s){
-        pw.println(s);
+    void peerSaysToLog(String s){
+        pw.println("Peer says : " + s);
     }
+
+    void serverSaysToLog(String s){
+        pw.println("Server says : " + s);
+    }
+
+    void peerConnected(String ip, int port){
+        pw.println("Now connected to "+ ip +":"+ Integer.toString(port));
+    }
+
+    void fileSpecs(String fileName, long fileSize, String key){
+        pw.println("FPD file is "+ fileName + ", size is " + fileSize + ", key is " + key);
+    };
 }

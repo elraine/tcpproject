@@ -38,6 +38,7 @@ class FilePeerDescriptor implements Cloneable {
         this.file = f;
         this.bm = new BufferMap(fileSize / pieceSize + 1);
         this.pieces = Collections.synchronizedList(new ArrayList<>());
+        LogWriter.getInstance().fileSpecs(fileName,fileSize, fileKey);
     }
 
     /**
@@ -49,6 +50,7 @@ class FilePeerDescriptor implements Cloneable {
      */
     FilePeerDescriptor(String fileKey, int pieceSize, File f) {
         this(f.getName(), fileKey, (int) f.length(), pieceSize, f);
+        LogWriter.getInstance().fileSpecs(f.getName(),f.length(), fileKey);
     }
 
     /**
@@ -61,6 +63,7 @@ class FilePeerDescriptor implements Cloneable {
      */
     public FilePeerDescriptor(String fileName, String fileKey, int fileSize, int pieceSize) {
         this(fileName, fileKey, fileSize, pieceSize, null);
+        LogWriter.getInstance().fileSpecs(fileName,fileSize, fileKey);
     }
 
     /* Get methods */

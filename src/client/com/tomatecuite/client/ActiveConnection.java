@@ -28,6 +28,7 @@ public class ActiveConnection extends Thread {
     public ActiveConnection(String host, int port){
         this.host = host;
         this.port = port;
+        LogWriter.getInstance().peerConnected(host, port);
     }
 
     public String getHost() {
@@ -60,6 +61,7 @@ public class ActiveConnection extends Thread {
 
     public void write(String message){
         try{
+            System.out.println(message);
             writer.write(message);
             writer.flush();
         } catch (IOException e) {

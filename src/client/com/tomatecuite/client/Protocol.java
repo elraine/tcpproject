@@ -37,10 +37,10 @@ public class Protocol{
         announce = announce + "]";
 
 
-        LogWriter.getInstance().writeToLog(announce);
+        LogWriter.getInstance().peerSaysToLog(announce);
         connector.write(announce);
         String response = connector.read();
-
+        LogWriter.getInstance().serverSaysToLog(response);
         if (response == null
                 || !response.startsWith(InputMessagesPatternsBundle._OK_CST)) {
             throw new InvalidAnswerException(response);
@@ -66,10 +66,11 @@ public class Protocol{
             toserv += criterion[i];
         }
 
-        LogWriter.getInstance().writeToLog(toserv);
+        LogWriter.getInstance().peerSaysToLog(toserv);
         connector.write(toserv);
 
         String servanswer = connector.read();
+        LogWriter.getInstance().serverSaysToLog(servanswer);
         String[] peerpart = {""};
 
 
@@ -94,9 +95,11 @@ public class Protocol{
         //peers $ Key  [ $IP1:$Port1 $ IP2:$Port2 ...  ]
         String getfile = "getfile " + key;
         System.out.println(getfile);
+        LogWriter.getInstance().peerSaysToLog(getfile);
         connector.write(getfile);
 
         String servanswer = connector.read();
+        LogWriter.getInstance().serverSaysToLog(servanswer);
         String debut = "peers " +key;
         String[] peerpart={""};
         if(servanswer.startsWith(debut)) {
@@ -124,10 +127,11 @@ public class Protocol{
 
         String toserv = "interested " + key;
 
-        LogWriter.getInstance().writeToLog(toserv);
+        LogWriter.getInstance().peerSaysToLog(toserv);
         connector.write(toserv);
 
         String servanswer = connector.read();
+        LogWriter.getInstance().serverSaysToLog(servanswer);
         String debut = "have " +key;
         String[] peerpart={""};
         if(servanswer.startsWith(debut)) {
@@ -182,9 +186,10 @@ public class Protocol{
             String toserv = "have " + fpd.getKey() + " " + fpd.getBufferMap().getStringForm();
 
             connector.write(toserv);
-            LogWriter.getInstance().writeToLog(toserv);
+            LogWriter.getInstance().peerSaysToLog(toserv);
 
             String servanswer = connector.read();
+            LogWriter.getInstance().serverSaysToLog(servanswer);
             String debut = "have " + fpd.getKey();
             String[] peerpart={""};
             if(servanswer.startsWith(debut)) {
@@ -211,11 +216,13 @@ public class Protocol{
 
 
             // Send announcement
-            connector.write(getUpdateMessage(seededFiles, leechedFiles));
+            String updatemsg = "getUpdateMessage(seededFiles, leechedFiles)";
+            LogWriter.getInstance().peerSaysToLog(updatemsg);
+            connector.write(updatemsg);
 
             // Read the response
             String response = connector.read();
-
+            LogWriter.getInstance().serverSaysToLog(response);
             // Handle the response
             if (response == null
                     || response.startsWith(InputMessagesPatternsBundle._OK_CST) == false) {
