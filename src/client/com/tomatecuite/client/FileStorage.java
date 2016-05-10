@@ -80,7 +80,7 @@ public class FileStorage{
     }
 
     public List<FilePeerDescriptor> getFilesList() {
-        return new ArrayList<FilePeerDescriptor>(getFilesMap().values());
+        return new ArrayList<>(getFilesMap().values());
     }
 
     public List<FilePeerDescriptor> getLeechList(){
