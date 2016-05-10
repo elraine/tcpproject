@@ -123,8 +123,16 @@ public class App {
         ActiveConnection trackerConnector = new ActiveConnection(TRACKER_HOST, TRACKER_PORT);;
         store = FileStorage.getInstance();
         System.out.println("Bonjour");
-        System.out.println(FileStorage.getInstance().getFilesList());
+        //System.out.println(FileStorage.getInstance().getFilesList());
         initiateP2P(peerConnector, trackerConnector);
+        String[] criterions = {"test"};
+        System.out.println("Début Look");
+        ArrayList<FilePeerDescriptor> files = Protocol.getInstance().pLook(trackerConnector, criterions);
+        System.out.println("Fin Look");
+        for(FilePeerDescriptor file : files){
+            System.out.println("Name : " + file.getName() + " & Key : " + file.getKey() + " & Piece Size : " +
+                    file.getPieceSize() + " & File Size : " + file.getFileSize());
+        }
         System.out.println("Aurevoir");
         trackerConnector.closeConnection();
         //System.out.println(FileStorage.getInstance().getFilesList());
@@ -139,9 +147,6 @@ public class App {
             Protocol.getInstance().pAnnounce(trackerConnector,
                     store.getFilesList(), null);
             ArrayList<Peer> peers = Protocol.getInstance().pGetFile(trackerConnector, "638be43e65bdcb2d3152cf350b35581");
-            for(Peer peer : peers){
-                System.out.println("Address : " + peer.getAddress() + " & Port : " + peer.getPort());
-            }
         } catch (InvalidAnswerException e) {
             e.printStackTrace();
         }

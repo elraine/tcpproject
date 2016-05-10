@@ -50,7 +50,7 @@ public class Protocol{
 
     }
 
-    private ArrayList<FilePeerDescriptor> pLook(ActiveConnection connector, String[] criterion) {
+    public ArrayList<FilePeerDescriptor> pLook(ActiveConnection connector, String[] criterion) {
         //look [ $Criterion1 $Criterion2  ...]
         //serv : list [ $Filename1 $Length1 $PieceSize1 $Key1  $Filename2 $Length2 $PieceSize2 $Key2 ...]
 
@@ -59,7 +59,7 @@ public class Protocol{
 //        piecesize>"..." | piecesize<"..."		  One of the two or none.
 
         FileStorage fs = FileStorage.getInstance();
-        ArrayList<FilePeerDescriptor> afpd = new ArrayList<FilePeerDescriptor>();
+        ArrayList<FilePeerDescriptor> fileList = new ArrayList<FilePeerDescriptor>();
 
         String toserv = "look ";
         for (int i = 0; i < criterion.length; i++) {
@@ -69,26 +69,46 @@ public class Protocol{
         LogWriter.getInstance().writeToLog(toserv);
         connector.write(toserv);
 
-        String servanswer = connector.read();
-        String[] peerpart = {""};
-
+        String servAnswer = connector.read();
+        String[] peerPart = {""};
 
         String debut = "list [";
-        if (servanswer.startsWith(debut)) {
-            peerpart = servanswer.split("\\[", 2);
-        }
-        String[] fileList = peerpart[1].split(" ");
-        for (int i = 0; i < peerpart.length-3; i++) {
-            String name = fileList[i];
-            int length = Integer.valueOf(fileList[i+1]);
-            int pieceSize =  Integer.valueOf(fileList[i+2]);
-            String key = fileList[i+3];
-            i+=3;
-            afpd.add(new FilePeerDescriptor(name,key,length,pieceSize));
+        if (servAnswer.startsWith(debut)) {
+            peerPart = servAnswer.split(" ", 2);
+            peerPart[1] = peerPart[1].substring(1, (peerPart[1].length()) - 1);
         }
 
-        return afpd;
+        String[] params = peerPart[1].split(" ");
+        int i = 0;
+        String fileName = new String();
+        String fileKey = new String();
+        String fileSize = new String();
+        String pieceSize = new String();
+
+        for (String param : params) {
+            if(i%4 == 0 && i != 0){
+                fileList.add(new FilePeerDescriptor(fileName, fileKey, Integer.valueOf(fileSize), Integer.valueOf(pieceSize)));
+                fileName = param;
+            }
+            else if(i%4 == 1)
+                fileSize = param;
+            else if(i%4 == 2)
+                pieceSize = param;
+            else if(i%4 == 3)
+                fileKey = param;
+            System.out.println(param + " " + i);
+            i++;
+        }
+
+        if(i < 5)
+            fileList.add(new FilePeerDescriptor(fileName, fileKey, Integer.valueOf(fileSize), Integer.valueOf(pieceSize)));
+
+        for(FilePeerDescriptor file : fileList)
+            System.out.println("Name : " + file.getName() + " && Key : " + file.getKey() + " && Piece Size : "
+                    + file.getPieceSize() + " && File Size : " + file.getFileSize());
+        return fileList;
     }
+
     public ArrayList<Peer> pGetFile(ActiveConnection connector, String key) {
         //getfile  $Key
         //peers $ Key  [ $IP1:$Port1 $ IP2:$Port2 ...  ]
@@ -103,14 +123,12 @@ public class Protocol{
             peerpart = servanswer.split(" ", 3);
         }
         peerpart[2] = peerpart[2].substring(1, (peerpart[2].length()) - 1);
-        System.out.println(peerpart[2]);
         ArrayList<Peer> arPeer = null;
         if(peerpart.length > 2) {
             String[] couple = peerpart[2].split(" ");
             arPeer = new ArrayList<Peer>();
             for (int i = 0; i < couple.length; i++) {
                 String[] ipport = couple[i].split(":", 2);
-                System.out.println("Ip : " + ipport[0] + " & Port: " + ipport[1]);
                 arPeer.add(new Peer(ipport[0], Integer.valueOf(ipport[1])));
             }
         }
