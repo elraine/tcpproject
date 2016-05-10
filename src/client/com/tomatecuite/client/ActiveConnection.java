@@ -1,7 +1,5 @@
 package com.tomatecuite.client;
 
-import com.tomatecuite.*;
-import java.util.*;
 import java.io.*;
 import java.math.BigInteger;
 import java.net.Socket;
@@ -12,7 +10,11 @@ import java.util.regex.Matcher;
 /**
  * Created by Romain on 08/05/2016.
  */
-public class ClientConnector extends Thread {
+public class ActiveConnection extends Thread {
+    public enum remoteType{
+        PEER, TRACKER
+    };
+
     private Socket socket;
     private BufferedReader reader;
     private BufferedWriter writer;
@@ -23,49 +25,17 @@ public class ClientConnector extends Thread {
 
     private static final FileStorage store = FileStorage.getInstance();
 
-    public Socket getSocket() {
-        return socket;
-    }
-
-    public void setSocket(Socket socket) {
-        this.socket = socket;
-    }
-
-    public BufferedReader getReader() {
-        return reader;
-    }
-
-    public void setReader(BufferedReader reader) {
-        this.reader = reader;
-    }
-
-    public BufferedWriter getWriter() {
-        return writer;
-    }
-
-    public void setWriter(BufferedWriter writer) {
-        this.writer = writer;
+    public ActiveConnection(String host, int port){
+        this.host = host;
+        this.port = port;
     }
 
     public String getHost() {
         return host;
     }
 
-    public void setHost(String host) {
-        this.host = host;
-    }
-
     public int getPort() {
         return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public ClientConnector(String host, int port){
-        this.host = host;
-        this.port = port;
     }
 
     public void initConnection(){
@@ -160,7 +130,7 @@ public class ClientConnector extends Thread {
         ConnectorBundle.getInstance().getConnectors().remove(this);
     }
 
-    public FilePeerDescriptor getFileBufferMap(ClientConnector connector, String fileKey) throws InvalidAnswerException {
+    public FilePeerDescriptor getFileBufferMap(ActiveConnection connector, String fileKey) throws InvalidAnswerException {
         String message = getFileBufferMapMessage(fileKey);
         connector.write(message);
 
@@ -192,7 +162,7 @@ public class ClientConnector extends Thread {
         return peer;
     }
 
-    public FilePeerDescriptor getFileData(ClientConnector connector, String key, Integer[] p) throws InvalidAnswerException{
+    public FilePeerDescriptor getFileData(ActiveConnection connector, String key, Integer[] p) throws InvalidAnswerException{
         connector.write(getPiecesMessage(key, p));
 
         String response = connector.read();

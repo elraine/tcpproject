@@ -1,9 +1,5 @@
 package com.tomatecuite.client;
 
-import com.tomatecuite.*;
-import java.util.*;
-import java.io.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -23,7 +19,7 @@ public class Protocol{
     }
 
 
-    public void pAnnounce(ClientConnector connector,
+    public void pAnnounce(ActiveConnection connector,
                           List<FilePeerDescriptor> seededFiles, List<FilePeerDescriptor> leechedFiles) throws InvalidAnswerException {
         //announce  listen  $Port  seed [ $Filename1 $Length1 $PieceSize1 $Key1  $Filename2 $Length2 $PieceSize2 $Key2 ...]  leech [ $Key3  $Key4 ...]
         //awaits a "OK" from server
@@ -40,8 +36,6 @@ public class Protocol{
         }
         announce = announce + "]";
 
-
-        connector.initConnection();
         connector.write(announce);
         String response = connector.read();
 
@@ -49,9 +43,7 @@ public class Protocol{
                 || !response.startsWith(InputMessagesPatternsBundle._OK_CST)) {
             throw new InvalidAnswerException(response);
         }
-
-        // Close connection with the tracker
-        connector.closeConnection();
+        System.out.println("fin Announce");
     }
 
     private ArrayList<FilePeerDescriptor> pLook(String[] criterion) {
@@ -91,25 +83,28 @@ public class Protocol{
 
         return afpd;
     }
-    private ArrayList<Peer> pGetFile(String key) {
+    public ArrayList<Peer> pGetFile(ActiveConnection connector, String key) {
         //getfile  $Key
         //peers $ Key  [ $IP1:$Port1 $ IP2:$Port2 ...  ]
-        String toserv = "getfile " + key;
-        System.out.println(toserv);
+        String getfile = "getfile " + key;
+        System.out.println(getfile);
+        connector.write(getfile);
 
-
-        String servanswer = (new Scanner(System.in)).nextLine();
+        String servanswer = connector.read();
         String debut = "peers " +key;
         String[] peerpart={""};
         if(servanswer.startsWith(debut)) {
             peerpart = servanswer.split(" ", 3);
         }
+        peerpart[2] = peerpart[2].substring(1, (peerpart[2].length()) - 1);
+        System.out.println(peerpart[2]);
         ArrayList<Peer> arPeer = null;
         if(peerpart.length > 2) {
             String[] couple = peerpart[2].split(" ");
             arPeer = new ArrayList<Peer>();
             for (int i = 0; i < couple.length; i++) {
                 String[] ipport = couple[i].split(":", 2);
+                System.out.println("Ip : " + ipport[0] + " & Port: " + ipport[1]);
                 arPeer.add(new Peer(ipport[0], Integer.valueOf(ipport[1])));
             }
         }
@@ -197,8 +192,8 @@ public class Protocol{
             return false;
         }
 
-        private void pUpdateToTracker(ClientConnector connector, List<FilePeerDescriptor> seededFiles,
-                                         List<FilePeerDescriptor> leechedFiles) throws InvalidAnswerException{
+        private void pUpdateToTracker(ActiveConnection connector, List<FilePeerDescriptor> seededFiles,
+                                      List<FilePeerDescriptor> leechedFiles) throws InvalidAnswerException{
             // < update  seed [$ Key1 $Key2 $Key3 ...] leech [ $Key10 $Key11 $Key12 ... ]
             // Connect to the tracker
             connector.initConnection();

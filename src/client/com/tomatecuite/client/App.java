@@ -1,15 +1,15 @@
-package com.tomatecuite.client;
+/*package com.tomatecuite.client;
 
 import sun.security.krb5.Config;
 
 import java.io.IOException;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.SocketChannel;*/
 
 /**
  * Created by Romain on 09/05/2016.
  */
 
-public class App{
+/*public class App{
     private static final String _REQUESTED_KEY = "638be43e65bdcb2d3152cf350b35581";
 
     public static void main(String[] args) {
@@ -31,10 +31,10 @@ public class App{
         // LocalStorage.getInstance().createLeechedFile(
         // new PeerFile(_REQUESTED_KEY, "snow.jpg", 2048, 510084, null));
 
-        ClientConnector peer3 = new ClientConnector("localhost", 10004);
+        ActiveConnection peer3 = new ActiveConnection("localhost", 10004);
         peer3.start(_REQUESTED_KEY);
     }
-}
+}*/
 /*public class App {
 
     // Configuration
@@ -56,7 +56,7 @@ public class App{
     public static void main(String[] args) {
 
         // Announce and get file (to the tracker)
-        ClientConnector trackerConnector = new ClientConnector(TRACKER_HOST, TRACKER_PORT);
+        ActiveConnection trackerConnector = new ActiveConnection(TRACKER_HOST, TRACKER_PORT);
         _HANDLER = new PassiveConnection(PEER_HOST, PEER_PORT);
 
         try {
@@ -98,10 +98,9 @@ public class App{
     }
 }*/
 
-/*package com.tomatecuite.client;
-import com.tomatecuite.*;
-import java.util.*;
-import java.io.*;
+package com.tomatecuite.client;
+
+import java.util.ArrayList;
 
 public class App {
     // Local Storage
@@ -117,33 +116,34 @@ public class App {
     private static final String PEER_HOST = config.getProperty(
             Constants.PEER_HOST_KEY, "localhost");
     private static final int PEER_PORT = config.getPropertyAsInt(
-            Constants.PEER_PORT_KEY, 1026);
+            Constants.PEER_PORT_KEY, 10000);
 
     public static void main(String[] args){
+        PassiveConnection peerConnector = new PassiveConnection(PEER_HOST, PEER_PORT);;
+        ActiveConnection trackerConnector = new ActiveConnection(TRACKER_HOST, TRACKER_PORT);;
         store = FileStorage.getInstance();
         System.out.println("Bonjour");
         System.out.println(FileStorage.getInstance().getFilesList());
-        initiateP2P();
+        initiateP2P(peerConnector, trackerConnector);
+        System.out.println("Aurevoir");
+        trackerConnector.closeConnection();
         //System.out.println(FileStorage.getInstance().getFilesList());
     }
 
-    private static void initiateP2P(){
-        new PassiveConnection(PEER_HOST, PEER_PORT).start();
+    private static void initiateP2P(PassiveConnection peerConnector, ActiveConnection trackerConnector){
+        peerConnector.start();
 
-        ClientConnector peerConnector = new ClientConnector(TRACKER_HOST, TRACKER_PORT);
-
-        try {
-            Protocol.getInstance().pAnnounce(peerConnector,
-                    store.getFilesList(), null);
-        } catch (InvalidAnswerException e) {
-            e.printStackTrace();
-        }
+        trackerConnector.initConnection();
 
         try {
-            Protocol.getInstance().pAnnounce(peerConnector,
+            Protocol.getInstance().pAnnounce(trackerConnector,
                     store.getFilesList(), null);
+            ArrayList<Peer> peers = Protocol.getInstance().pGetFile(trackerConnector, "638be43e65bdcb2d3152cf350b35581");
+            for(Peer peer : peers){
+                System.out.println("Address : " + peer.getAddress() + " & Port : " + peer.getPort());
+            }
         } catch (InvalidAnswerException e) {
             e.printStackTrace();
         }
     }
-}*/
+}

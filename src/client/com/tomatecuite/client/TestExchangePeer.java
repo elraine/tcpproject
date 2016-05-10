@@ -14,10 +14,11 @@ public class TestExchangePeer {
     public static void main(String[] args) {
 
         // Announce and get file (to the tracker)
-        ClientConnector trackerConnector = new ClientConnector(
+        ActiveConnection trackerConnector = new ActiveConnection(
                 Configuration.getInstance().getProperty("tracker.host",
                         "192.168.23.13"), Configuration.getInstance()
-                .getPropertyAsInt("tracker.port", 8334));
+                .getPropertyAsInt("tracker.port", 9998));
+        trackerConnector.initConnection();
         _HANDLER = new PassiveConnection(trackerConnector.getHost(), trackerConnector.getPort());
 
         try {
@@ -59,5 +60,6 @@ public class TestExchangePeer {
 
         // Print local storage
         System.out.println(FileStorage.getInstance().getFilesList());
+        trackerConnector.closeConnection();
     }
 }
