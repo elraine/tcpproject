@@ -27,24 +27,28 @@ void *connection_handler(void *s){
 	
 	char buffer[BUFFERSIZE];
 	int nb_read;	
-	char* mess_bienv = "Bienvenue sur le tracker, vous pouvez maintenant rechercher des fichiers par critères ou par key";
 	printf("Nouveau Client \t: %s:%d\n",seed->seeder_IP,seed->portno);
 	LOG("Nouveau Client \t: %s:%d\n",seed->seeder_IP,seed->portno);
 
-	char* mess;
 
 	while( (nb_read = recv(seed->sockfd, buffer , BUFFERSIZE , 0)) > 0 ){
 			
 		printf("message recu \t: %s\n",buffer);
-		asprintf(&mess,"%s\n",reply);
 
-		char* reply = tracker_parse_message(mess,&track,seed);
+		char* reply = tracker_parse_message(buffer,&track,seed);
+		char* mess;
+
+		if(strcmp(reply,"ok")==0)
+			asprintf(&mess,"%s",reply);
+		else
+			asprintf(&mess,"%s\n",reply);
+
 		if(strcmp(reply,"error")==0){
 			LOG("server : unknown command\n");
 		}
 
-		printf("reponse envoyé\t: %s\n",reply);		
-		write(seed->sockfd , reply , strlen(reply));
+		printf("reponse envoyé\t: %s\n",mess);		
+		write(seed->sockfd , mess , strlen(mess));
 
 		memset(buffer,(char)'\0',BUFFERSIZE);
 	}

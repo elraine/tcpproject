@@ -141,7 +141,7 @@ char* tracker_parse_message(char* mess, tracker* t, seeder* s){
 		char *seeded = removeFirstCharacter(strtok(NULL, "]")); //seeded = listOfFiles
 		tracker_store_info_seeded(seeded, t, s);
 
-		reply = "OK";
+		reply = "ok";
 	}
 	else if(strcmp(tmp, "look") ==0){
 		tmp = removeFirstCharacter(strtok(NULL, "]"));
