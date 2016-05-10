@@ -36,6 +36,8 @@ public class Protocol{
         }
         announce = announce + "]";
 
+
+        LogWriter.getInstance().writeToLog(announce);
         connector.write(announce);
         String response = connector.read();
 
@@ -43,10 +45,12 @@ public class Protocol{
                 || !response.startsWith(InputMessagesPatternsBundle._OK_CST)) {
             throw new InvalidAnswerException(response);
         }
-        System.out.println("fin Announce");
+
+        // Close connection with the tracker
+
     }
 
-    private ArrayList<FilePeerDescriptor> pLook(String[] criterion) {
+    private ArrayList<FilePeerDescriptor> pLook(ClientConnector connector, String[] criterion) {
         //look [ $Criterion1 $Criterion2  ...]
         //serv : list [ $Filename1 $Length1 $PieceSize1 $Key1  $Filename2 $Length2 $PieceSize2 $Key2 ...]
 
@@ -61,9 +65,11 @@ public class Protocol{
         for (int i = 0; i < criterion.length; i++) {
             toserv += criterion[i];
         }
-        System.out.println(toserv);
 
-        String servanswer = (new Scanner(System.in)).nextLine();
+        LogWriter.getInstance().writeToLog(toserv);
+        connector.write(toserv);
+
+        String servanswer = connector.read();
         String[] peerpart = {""};
 
 
@@ -111,15 +117,17 @@ public class Protocol{
         return arPeer;
     }
 
-    private boolean pInterested(String key, FilePeerDescriptor fpd) {
+    private boolean pInterested(ClientConnector connector, String key, FilePeerDescriptor fpd) {
         // interested  $Key
         //have  $Key  $BufferMap
         FileStorage fs = FileStorage.getInstance();
 
         String toserv = "interested " + key;
-        System.out.println(toserv);
 
-        String servanswer = (new Scanner(System.in)).nextLine();
+        LogWriter.getInstance().writeToLog(toserv);
+        connector.write(toserv);
+
+        String servanswer = connector.read();
         String debut = "have " +key;
         String[] peerpart={""};
         if(servanswer.startsWith(debut)) {
@@ -139,11 +147,11 @@ public class Protocol{
     }
 
 
-    private boolean sendRegularInterval(FilePeerDescriptor fpd) throws Exception{
+    private boolean sendRegularInterval(ClientConnector connector, FilePeerDescriptor fpd) throws Exception{
         Timer t = new Timer("Vador", true);
         int updateValue =  Integer.valueOf(Constants.UPDATE_FREQUENCY_KEY);
         try {
-            t.scheduleAtFixedRate(new TaskRepeating(fpd), 30000, updateValue * 60 * 1000);
+            t.scheduleAtFixedRate(new TaskRepeating(connector,fpd), 30000, updateValue * 60 * 1000);
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -152,27 +160,31 @@ public class Protocol{
 
     private class TaskRepeating extends TimerTask{
         FilePeerDescriptor fpd;
+        ClientConnector connector;
 
-        public TaskRepeating(FilePeerDescriptor fpd) {
+        public TaskRepeating(ClientConnector connector,FilePeerDescriptor fpd) {
             this.fpd = fpd;
+            this.connector = connector;
         }
 
         public void run(){
             System.out.println("Roar, i am the timer");
-            pHave(this.fpd);
+            pHave(connector, this.fpd);
             //pUpdateToTracker();
         }
 
-        private boolean pHave(FilePeerDescriptor fpd){
+        private boolean pHave(ClientConnector connector, FilePeerDescriptor fpd){
             //< have $ Key  $BufferMap
             //> have  $Key  $BufferMap
 
             FileStorage fs = FileStorage.getInstance();
 
             String toserv = "have " + fpd.getKey() + " " + fpd.getBufferMap().getStringForm();
-            System.out.println(toserv);
 
-            String servanswer = (new Scanner(System.in)).nextLine();
+            connector.write(toserv);
+            LogWriter.getInstance().writeToLog(toserv);
+
+            String servanswer = connector.read();
             String debut = "have " + fpd.getKey();
             String[] peerpart={""};
             if(servanswer.startsWith(debut)) {
@@ -196,7 +208,7 @@ public class Protocol{
                                       List<FilePeerDescriptor> leechedFiles) throws InvalidAnswerException{
             // < update  seed [$ Key1 $Key2 $Key3 ...] leech [ $Key10 $Key11 $Key12 ... ]
             // Connect to the tracker
-            connector.initConnection();
+
 
             // Send announcement
             connector.write(getUpdateMessage(seededFiles, leechedFiles));
@@ -211,7 +223,7 @@ public class Protocol{
             }
 
             // Close connection with the tracker
-            connector.closeConnection();
+
         }
 
         public String getUpdateMessage(List<FilePeerDescriptor> seededFiles,
