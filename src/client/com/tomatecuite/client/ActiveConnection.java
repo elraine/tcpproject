@@ -90,7 +90,7 @@ public class ActiveConnection extends Thread {
 
         try{
             initConnection();
-            FilePeerDescriptor receivedBufferMapFile = getFileBufferMap(this, fileKey);
+            FilePeerDescriptor receivedBufferMapFile = Protocol.getInstance().pInterested(this, fileKey);
 
             if(receivedBufferMapFile == null) {
                 LogWriter.getInstance().write("No bufferMap received");
@@ -132,21 +132,6 @@ public class ActiveConnection extends Thread {
 
         closeConnection();
         ConnectorBundle.getInstance().getConnectors().remove(this);
-    }
-
-    public FilePeerDescriptor getFileBufferMap(ActiveConnection connector, String fileKey) throws InvalidAnswerException {
-        String message = getFileBufferMapMessage(fileKey);
-        connector.write(message);
-
-        String response = connector.read();
-        if(response == null || !(response.startsWith("have")))
-            throw new InvalidAnswerException(response);
-
-        return getRequestedFileBufferMap(response);
-    }
-
-    public String getFileBufferMapMessage(String fileKey){
-        return "interested" + fileKey;
     }
 
     public FilePeerDescriptor getRequestedFileBufferMap(String inputMessage){

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Matcher;
 
 public class Protocol{
     private static Protocol instance;
@@ -45,9 +46,6 @@ public class Protocol{
                 || !response.startsWith(InputMessagesPatternsBundle._OK_CST)) {
             throw new InvalidAnswerException(response);
         }
-
-        // Close connection with the tracker
-
     }
 
     public ArrayList<FilePeerDescriptor> pLook(ActiveConnection connector, String[] criterion) {
@@ -139,34 +137,32 @@ public class Protocol{
         return arPeer;
     }
 
-    private boolean pInterested(ActiveConnection connector, String key, FilePeerDescriptor fpd) {
-        // interested  $Key
-        //have  $Key  $BufferMap
-        FileStorage fs = FileStorage.getInstance();
+    public String getFileBufferMap(String key){
+        return "interested " + key;
+    }
 
-        String toserv = "interested " + key;
+    public FilePeerDescriptor pInterested(ActiveConnection connector, String key) throws InvalidAnswerException {
+        connector.write("interested " + key);
+        String response = connector.read();
+        System.out.println("Response : " + response);
+        if(response == null || !(response.startsWith("have"))){
+            throw new InvalidAnswerException(response);
+        }
+        else{
+            String[] subResponse = response.split(" ", 3);
+            if(subResponse[2] == null)
+                return null;
+            String bufferMap = subResponse[2];
+            System.out.println("Buffeer map : " + bufferMap);
 
-        LogWriter.getInstance().peerSaysToLog(toserv);
-        connector.write(toserv);
+            FilePeerDescriptor file = new FilePeerDescriptor(null, key, 0, 1, null);
+            file.getBufferMap().stringToBufferMap(bufferMap);
+            System.out.println("File : " + file.getKey() + " Buffer Map : " + file.getBufferMap());
 
-        String servanswer = connector.read();
-        LogWriter.getInstance().serverSaysToLog(servanswer);
-        String debut = "have " +key;
-        String[] peerpart={""};
-        if(servanswer.startsWith(debut)) {
-            peerpart = servanswer.split(" ", 3);
+            return file;
         }
-        BufferMap bm = fpd.getBufferMap();
-        BufferMap receivedBm = new BufferMap();
-        if(peerpart.length > 1){
-            receivedBm.stringToBufferMap(peerpart[2]);
-        }
-        int rbm = receivedBm.cardinality();
-        if(rbm > bm.cardinality()){
-            fs.addLeechedFile(fpd);
-            return true;
-        }
-        return false;
+
+
     }
 
 

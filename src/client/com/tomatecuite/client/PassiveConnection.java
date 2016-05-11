@@ -215,8 +215,7 @@ public class PassiveConnection extends Thread {
         return "have " + f.getKey() + " " + f.getBufferMap().getStringForm();
     }
 
-    public void handlePiecesDataRequest(SocketChannel sChannel,
-                                        String inputMessage) {
+    public void handlePiecesDataRequest(SocketChannel sChannel, String inputMessage) {
 
         Matcher requestedPiecesMatcher = InputMessagesPatternsBundle._FILE_GET_PIECES_REQUEST_PATTERN
                 .matcher(inputMessage);

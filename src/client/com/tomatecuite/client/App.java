@@ -100,6 +100,7 @@ import java.nio.channels.SocketChannel;*/
 
 package com.tomatecuite.client;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class App {
@@ -108,6 +109,7 @@ public class App {
 
     // Configuration
     private static final Configuration config = Configuration.getInstance();
+    private static final Protocol protocole = Protocol.getInstance();
 
     private static final String TRACKER_HOST = config.getProperty(
             Constants.TRACKER_HOST_KEY, "192.168.23.13");
@@ -126,10 +128,10 @@ public class App {
         store = FileStorage.getInstance();
         System.out.println("Bonjour");
         //System.out.println(FileStorage.getInstance().getFilesList());
-        initiateP2P(peerConnector, trackerConnector);
+        initiateP2T(peerConnector, trackerConnector);
         String[] criterions = {"test"};
         System.out.println("Début Look");
-        ArrayList<FilePeerDescriptor> files = Protocol.getInstance().pLook(trackerConnector, criterions);
+        ArrayList<FilePeerDescriptor> files = protocole.pLook(trackerConnector, criterions);
         System.out.println("Fin Look");
         for(FilePeerDescriptor file : files){
             System.out.println("Name : " + file.getName() + " & Key : " + file.getKey() + " & Piece Size : " +
@@ -141,17 +143,35 @@ public class App {
         //System.out.println(FileStorage.getInstance().getFilesList());
     }
 
-    private static void initiateP2P(PassiveConnection peerConnector, ActiveConnection trackerConnector){
+    private static void initiateP2T(PassiveConnection peerConnector, ActiveConnection trackerConnector){
         peerConnector.start();
 
         trackerConnector.initConnection();
 
         try {
-            Protocol.getInstance().pAnnounce(trackerConnector,
+            protocole.pAnnounce(trackerConnector,
                     store.getFilesList(), null);
-            ArrayList<Peer> peers = Protocol.getInstance().pGetFile(trackerConnector, "638be43e65bdcb2d3152cf350b35581");
+            ArrayList<Peer> peers = protocole.pGetFile(trackerConnector, "638be43e65bdcb2d3152cf350b35581");
         } catch (InvalidAnswerException e) {
             e.printStackTrace();
         }
     }
+
+    private static void initiateP2P(ArrayList<Peer> peers){
+        ArrayList<ActiveConnection> P2P = new ArrayList<>();
+        for(Peer peer : peers){
+            P2P.add(new ActiveConnection(peer.getAddress(), peer.getPort()));
+        }
+
+        for(ActiveConnection peer : P2P){
+            try {
+                protocole.pInterested(peer, "638be43e65bdcb2d3152cf350b35581");
+            }
+            catch (InvalidAnswerException e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+
 }
