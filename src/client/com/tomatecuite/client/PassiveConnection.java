@@ -23,7 +23,6 @@ import java.util.regex.Matcher;
  * Created by Romain on 09/05/2016.
  */
 public class PassiveConnection extends Thread {
-    public static PassiveConnection instance;
     private static final int _MAXIMUM_CONNECTED_PEERS = Configuration
             .getInstance().getPropertyAsInt(
                     Constants.MAXIMUM_CONNECTED_PEERS_KEY, 5);
@@ -32,6 +31,7 @@ public class PassiveConnection extends Thread {
     private Selector select;
 
     public PassiveConnection(String host, int port) {
+        System.out.print("host et port : "+ host + " "+ port);
         this.host = new InetSocketAddress(host, port);
         initSelector();
     }
@@ -40,6 +40,7 @@ public class PassiveConnection extends Thread {
         try {
             this.select = Selector.open();
             ServerSocketChannel sChannel = createSocketChannel(host);
+            //SelectionKey key = sChannel.register(select,sChannel.validOps());
             sChannel.register(select, sChannel.validOps());
         } catch (IOException e) {
             e.printStackTrace();
@@ -53,27 +54,38 @@ public class PassiveConnection extends Thread {
         sChannel.configureBlocking(false);
 
         // Send a connection request to the server; this method is non-blocking
-        sChannel.socket().bind(host);
+        sChannel.bind(host);
         return sChannel;
     }
 
     @Override
     public void run(){
+        System.out.println("je lance run");
         listen();
     }
 
     private void listen(){
         while(true){
+            int nb;
+
+
+            System.out.println("je run run run");
+
+            System.out.println("selecotr : "+ select.keys() );
             try {
-                // Wait for an event
-                select.select();
+                System.out.println("j'attends un event");
+                // Wait for an event$
+                 nb = select.select();
+                System.out.println("j'ai select !");
+
             } catch (IOException e) {
+                System.out.println("exception catch");
                 return;
             }
-
+            System.out.println("nombre : " + nb);
             // Get list of selection keys with pending events
             Iterator<SelectionKey> it = select.selectedKeys().iterator();
-
+            System.out.println("plop");
             // Process each key at a time
             while (it.hasNext()) {
                 // Get the selection key

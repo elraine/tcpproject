@@ -42,6 +42,7 @@ public class ActiveConnection extends Thread {
     public void initConnection(){
         try{
             socket = new Socket(host, port);
+            System.out.println(socket.getInetAddress());
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 //           LogWriter.getInstance().peerConnected(host, port);

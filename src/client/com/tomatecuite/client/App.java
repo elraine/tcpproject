@@ -1,15 +1,15 @@
-package com.tomatecuite.client;
+/*package com.tomatecuite.client;
 
 import java.lang.reflect.Array;
 import com.oracle.tools.packager.Log;
 
-import java.util.ArrayList;
+import java.util.ArrayList;*/
 
 /**
  * Created by Romain on 09/05/2016.
  */
 
-public class App {
+/*public class App {
     // Local Storage
     private static FileStorage store;
 
@@ -84,7 +84,7 @@ public class App {
             e.printStackTrace();
         }
     }
-}
+}*/
 
 /*public class App {
 
@@ -148,7 +148,7 @@ public class App {
         System.out.println(FileStorage.getInstance().getFilesList());
     }
 }*/
-/*
+
 package com.tomatecuite.client;
 
 import java.lang.reflect.Array;
@@ -179,35 +179,35 @@ public class App {
         LogWriter.getInstance().peerConnected(PEER_HOST,PEER_PORT);
 
 
-        PassiveConnection peerConnector = new PassiveConnection(PEER_HOST, PEER_PORT);;
-        ActiveConnection trackerConnector = new ActiveConnection(TRACKER_HOST, TRACKER_PORT);;
+        PassiveConnection peerConnector = new PassiveConnection(PEER_HOST, PEER_PORT);
+        ActiveConnection trackerConnector = new ActiveConnection(TRACKER_HOST, TRACKER_PORT);
         store = FileStorage.getInstance();
-        System.out.println("Bonjour");
-        //System.out.println(FileStorage.getInstance().getFilesList());
+        initiateP2T(trackerConnector);
+
+        peerConnector.start();
         LogWriter.getInstance().close();
-        initiateP2T(peerConnector, trackerConnector);
-        String[] criterions = {"test"};
-        System.out.println("Début Look");
-        ArrayList<FilePeerDescriptor> files = protocole.pLook(trackerConnector, criterions);
-        System.out.println("Fin Look");
-        for(FilePeerDescriptor file : files){
-            System.out.println("Name : " + file.getName() + " & Key : " + file.getKey() + " & Piece Size : " +
-                    file.getPieceSize() + " & File Size : " + file.getFileSize());
-        }
-        System.out.println("Aurevoir");
-        trackerConnector.closeConnection();
+
+        //String[] criterions = {"test"};
+        //System.out.println("Début Look");
+        //ArrayList<FilePeerDescriptor> files = protocole.pLook(trackerConnector, criterions);
+        //System.out.println("Fin Look");
+        //for(FilePeerDescriptor file : files){
+        //    System.out.println("Name : " + file.getName() + " & Key : " + file.getKey() + " & Piece Size : " +
+        //            file.getPieceSize() + " & File Size : " + file.getFileSize());
+        //}
+        //System.out.println("Aurevoir");
+        //peerConnector.run();
+
+        //trackerConnector.closeConnection();
 
         //System.out.println(FileStorage.getInstance().getFilesList());
     }
 
-    private static void initiateP2T(PassiveConnection peerConnector, ActiveConnection trackerConnector){
-        peerConnector.start();
+    private static void initiateP2T(ActiveConnection trackerConnector){
         trackerConnector.initConnection();
 
         try {
-            protocole.pAnnounce(trackerConnector,
-                    store.getFilesList(), null);
-            //ArrayList<Peer> peers = protocole.pGetFile(trackerConnector, "638be43e65bdcb2d3152cf350b35581");
+            protocole.pAnnounce(trackerConnector, store.getFilesList(), null);
         } catch (InvalidAnswerException e) {
             e.printStackTrace();
         }
@@ -230,4 +230,4 @@ public class App {
     }
 
 
-} */
+}
