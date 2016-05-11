@@ -59,10 +59,11 @@ public class Protocol{
         FileStorage fs = FileStorage.getInstance();
         ArrayList<FilePeerDescriptor> fileList = new ArrayList<FilePeerDescriptor>();
 
-        String toserv = "look ";
+        String toserv = "look [filename=\"";
         for (int i = 0; i < criterion.length; i++) {
             toserv += criterion[i];
         }
+        toserv += "\"]";
 
         LogWriter.getInstance().peerSaysToLog(toserv);
         connector.write(toserv);
@@ -114,7 +115,7 @@ public class Protocol{
         //getfile  $Key
         //peers $ Key  [ $IP1:$Port1 $ IP2:$Port2 ...  ]
         String getfile = "getfile " + key;
-        System.out.println(getfile);
+        ArrayList<Peer> arPeer = null;
         LogWriter.getInstance().peerSaysToLog(getfile);
         connector.write(getfile);
 
@@ -122,17 +123,22 @@ public class Protocol{
         LogWriter.getInstance().serverSaysToLog(servanswer);
         String debut = "peers " +key;
         String[] peerpart={""};
+        if(servanswer.startsWith("ce fichier")) {
+            LogWriter.getInstance().write("File not found");
+            return arPeer;
+        }
         if(servanswer.startsWith(debut)) {
             peerpart = servanswer.split(" ", 3);
-        }
-        peerpart[2] = peerpart[2].substring(1, (peerpart[2].length()) - 1);
-        ArrayList<Peer> arPeer = null;
-        if(peerpart.length > 2) {
-            String[] couple = peerpart[2].split(" ");
-            arPeer = new ArrayList<Peer>();
-            for (int i = 0; i < couple.length; i++) {
-                String[] ipport = couple[i].split(":", 2);
-                arPeer.add(new Peer(ipport[0], Integer.valueOf(ipport[1])));
+
+            peerpart[2] = peerpart[2].substring(1, (peerpart[2].length()) - 1);
+
+            if (peerpart.length > 2) {
+                String[] couple = peerpart[2].split(" ");
+                arPeer = new ArrayList<Peer>();
+                for (int i = 0; i < couple.length; i++) {
+                    String[] ipport = couple[i].split(":", 2);
+                    arPeer.add(new Peer(ipport[0], Integer.valueOf(ipport[1])));
+                }
             }
         }
         return arPeer;
