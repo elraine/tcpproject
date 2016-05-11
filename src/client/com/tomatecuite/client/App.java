@@ -116,7 +116,7 @@ public class App {
     private static final String PEER_HOST = config.getProperty(
             Constants.PEER_HOST_KEY, "localhost");
     private static final int PEER_PORT = config.getPropertyAsInt(
-            Constants.PEER_PORT_KEY, 10000);
+            Constants.PEER_PORT_KEY, 13337);
 
     public static void main(String[] args){
         PassiveConnection peerConnector = new PassiveConnection(PEER_HOST, PEER_PORT);;
