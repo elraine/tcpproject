@@ -151,7 +151,7 @@ public class App {
         try {
             protocole.pAnnounce(trackerConnector,
                     store.getFilesList(), null);
-            ArrayList<Peer> peers = protocole.pGetFile(trackerConnector, "638be43e65bdcb2d3152cf350b35581");
+            //ArrayList<Peer> peers = protocole.pGetFile(trackerConnector, "638be43e65bdcb2d3152cf350b35581");
         } catch (InvalidAnswerException e) {
             e.printStackTrace();
         }
