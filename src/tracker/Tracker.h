@@ -23,7 +23,7 @@ char *tracker_search_files(tracker *t, char *criteria);
 char* tracker_parse_message(char* mess, tracker* t, seeder* s);
 
 void tracker_display_seeded_files(tracker* t);
-
+void tracker_disconnect_seeder(tracker* t, seeder* s);
 void tracker_free(tracker *t);
 
 #endif

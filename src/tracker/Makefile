@@ -32,5 +32,5 @@ Seeded_file.o: Seeded_file.c
 clean:
 	rm -rf *.o *.class *.dSYM a.out
 
-test: Seeded_file.o Seeder.o Tracker.o List.o
-	gcc -Wall test_tracker.c Tracker.o Seeded_file.o Seeder.o List.o
+test: clean test_tracker.c Utils.o Tracker.o List.o Seeder.o Seeded_file.o
+	gcc -Wall test_tracker.c Tracker.o Seeded_file.o List.o Seeder.o Utils.o -lm -o test_tracker

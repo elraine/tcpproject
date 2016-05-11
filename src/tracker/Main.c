@@ -38,23 +38,23 @@ void *connection_handler(void *s){
 		char* reply = tracker_parse_message(buffer,&track,seed);
 		char* mess;
 
-		if(strcmp(reply,"ok")==0)
-			asprintf(&mess,"%s",reply);
-		else
+		//if(strcmp(reply,"ok")==0)
+		//	asprintf(&mess,"%s",reply);
+		//else
 			asprintf(&mess,"%s\n",reply);
 
 		if(strcmp(reply,"error")==0){
 			LOG("server : unknown command\n");
 		}
 
-		printf("reponse envoyé\t: %s\n",mess);		
+		printf("reponse envoyée\t: %s\n",mess);		
 		write(seed->sockfd , mess , strlen(mess));
 
 		memset(buffer,(char)'\0',BUFFERSIZE);
 	}
 
 	if(nb_read==0){
-		LOG("Client %s:%d disconnected\n",seed->seeder_IP,seed->portno);
+		tracker_disconnect_seeder(&track,s);
         LOG("Client %s:%d disconnected\n",seed->seeder_IP,seed->portno);
         fflush(stdout);
 	}
@@ -90,17 +90,17 @@ int main(int argc, char *argv[]){
         if( pthread_create( &thread_id , NULL ,  connection_handler , s) < 0)
         {
 
-            LOG("server : ERROR on creating thread");
+            LOG("server : ERROR on creating thread\n");
             return 1;
         }
 
         //pthread_join( thread_id , NULL);
-        LOG("server : Handler assigned");
+        LOG("server : Handler assigned\n");
     }
 
     if (seeder_sockfd < 0)
     {
-        error("ERROR on accepting connexion");
+        LOG("server : ERROR on accepting connexion");
         return 1;
     }
 

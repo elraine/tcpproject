@@ -75,7 +75,20 @@ char* tracker_search_seeders(tracker *t, char* key){
 Adds a seeder to the seeders list of the tracker
 */
 void tracker_add_seeder(tracker* t, seeder* s){
-	list_add_head(t->seeders , element_init(s));
+	
+	int present;
+	element* current = t->seeders->head;
+	if(!list_is_end_mark(current)){
+		present=0;
+		while(!list_is_end_mark(current) && !present){
+
+			if(seeder_is_equals(s,current->data))
+				present = 1;
+			current=current->next;
+		}
+	}
+	if (!present)
+		list_add_head(t->seeders , element_init(s));
 }
 
 /*
@@ -101,12 +114,9 @@ int tracker_store_info_seeded(char *files, tracker *t, seeder* seed){
 				seeded_file* sf = search->data;
 				//si le seeder n'a pas ce fichier, on rajoute le seeder dans sf->seeders
 				element* seeder_search = seeded_file_seeder_find(sf->seeders,seed);
-				if(seeder_search == NULL){
+
+				if(seeder_search == NULL)
 					seeded_file_add_seeder(sf,seed);
-				}
-				//TODO free marche pas ?
-				//seeded_file_free(file);
-				//free(file); //temporary file is already in database : we can free it				
 
 			} else {
 				file->seeders = list_empty();
@@ -136,6 +146,7 @@ char* tracker_parse_message(char* mess, tracker* t, seeder* s){
 
 		tmp = strtok(NULL," "); //tmp = listen
 		tmp = strtok(NULL," "); //tmp = portno
+		s->portnoListen = atoi(tmp);
 		tmp = strtok(NULL," "); //tmp = seed;
 
 		char *seeded = removeFirstCharacter(strtok(NULL, "]")); //seeded = listOfFiles
@@ -274,4 +285,58 @@ void tracker_display_seeded_files(tracker* t){
 		}
 		current = current->next;
 	}
+
+	element *currseed = t->seeders->head;
+	printf("Seeders du tracker : \n");
+	while(!list_is_end_mark(currseed)){
+		printf("\t%s\n",seeder_get_info((seeder*)(currseed->data)));
+		currseed = currseed->next;
+	}
 }
+/*
+Disconnect a seeder from the tracker -> remove the seeder from the DB
+*/
+void tracker_disconnect_seeder(tracker* t, seeder* s){
+
+	element *currsf = t->seeded_files->head;
+	element *prev = NULL;
+	//pour chaque fichier	
+	while(!list_is_end_mark(currsf)){
+
+		seeder_remove_from_list(((seeded_file*)(currsf->data))->seeders,s);
+
+		if(list_is_end_mark(((seeded_file*)(currsf->data))->seeders->head)){
+			if(prev==NULL){
+				t->seeded_files->head=currsf->next;
+				prev=NULL;
+				currsf = currsf->next;	
+			}
+			else{
+				prev->next=currsf->next;
+				prev= currsf;
+				currsf = currsf->next;	
+			}
+		}
+		else{
+			prev= currsf;
+			currsf = currsf->next;	
+		}		
+	}
+
+	element* supprSeeder = seeder_remove_from_list(t->seeders,s);
+		if(supprSeeder != NULL){
+			seeder_free(supprSeeder->data);
+			free(supprSeeder);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+

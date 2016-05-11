@@ -110,15 +110,17 @@ public class App {
     private static final Configuration config = Configuration.getInstance();
 
     private static final String TRACKER_HOST = config.getProperty(
-            Constants.TRACKER_HOST_KEY, "localhost");
+            Constants.TRACKER_HOST_KEY, "192.168.23.13");
     private static final int TRACKER_PORT = config.getPropertyAsInt(
-            Constants.TRACKER_PORT_KEY, 1026);
+            Constants.TRACKER_PORT_KEY, 9000);
     private static final String PEER_HOST = config.getProperty(
             Constants.PEER_HOST_KEY, "localhost");
     private static final int PEER_PORT = config.getPropertyAsInt(
             Constants.PEER_PORT_KEY, 13337);
 
     public static void main(String[] args){
+        LogWriter.getInstance().write("Hello");
+
         PassiveConnection peerConnector = new PassiveConnection(PEER_HOST, PEER_PORT);;
         ActiveConnection trackerConnector = new ActiveConnection(TRACKER_HOST, TRACKER_PORT);;
         store = FileStorage.getInstance();
@@ -135,6 +137,7 @@ public class App {
         }
         System.out.println("Aurevoir");
         trackerConnector.closeConnection();
+
         //System.out.println(FileStorage.getInstance().getFilesList());
     }
 
