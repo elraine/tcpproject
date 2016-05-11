@@ -41,17 +41,32 @@ public class LogWriter extends Throwable {
 
     void peerSaysToLog(String s){
         pw.println("Peer says : " + s);
+        pw.close();
     }
 
     void serverSaysToLog(String s){
         pw.println("Server says : " + s);
+        pw.close();
     }
 
     void peerConnected(String ip, int port){
         pw.println("Now connected to "+ ip +":"+ Integer.toString(port));
+        pw.close();
+    }
+
+    void disconnect(){
+        pw.println("Disconnected");
+        pw.close();
     }
 
     void fileSpecs(String fileName, long fileSize, String key){
         pw.println("FPD file is "+ fileName + ", size is " + fileSize + ", key is " + key);
+        pw.close();
+
     };
+
+    void write(String msg){
+        pw.println(msg);
+        pw.close();
+    }
 }

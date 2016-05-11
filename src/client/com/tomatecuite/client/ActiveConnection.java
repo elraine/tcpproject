@@ -28,7 +28,6 @@ public class ActiveConnection extends Thread {
     public ActiveConnection(String host, int port){
         this.host = host;
         this.port = port;
-        LogWriter.getInstance().peerConnected(host, port);
     }
 
     public String getHost() {
@@ -44,7 +43,7 @@ public class ActiveConnection extends Thread {
             socket = new Socket(host, port);
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-
+            LogWriter.getInstance().peerConnected(host, port);
         } catch (IOException e){
             e.printStackTrace();
         }
@@ -52,8 +51,8 @@ public class ActiveConnection extends Thread {
 
     public void closeConnection(){
         try{
-            socket.close();
-
+                socket.close();
+                LogWriter.getInstance().disconnect();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -93,13 +92,16 @@ public class ActiveConnection extends Thread {
             initConnection();
             FilePeerDescriptor receivedBufferMapFile = getFileBufferMap(this, fileKey);
 
-            if(receivedBufferMapFile == null)
+            if(receivedBufferMapFile == null) {
+                LogWriter.getInstance().write("No bufferMap received");
                 return;
+            }
             FilePeerDescriptor localFile = store.getFile(receivedBufferMapFile.getKey());
 
-            if(localFile == null)
+            if(localFile == null) {
+                LogWriter.getInstance().write("");
                 return;
-
+            }
             BufferMap receivedBufMap = receivedBufferMapFile.getBufferMap();
             BufferMap localBufMap = localFile.getBufferMap();
 
