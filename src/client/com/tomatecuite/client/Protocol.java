@@ -86,26 +86,27 @@ public class Protocol{
         String pieceSize = new String();
 
         for (String param : params) {
-            if(i%4 == 0 && i != 0){
-                fileList.add(new FilePeerDescriptor(fileName, fileKey, Integer.valueOf(fileSize), Integer.valueOf(pieceSize)));
+            if(i%4 == 0 && i == 0){
                 fileName = param;
             }
-            else if(i%4 == 1)
+            if(i%4 == 0 && i != 0)
+                fileList.add(new FilePeerDescriptor(fileName, fileKey, Integer.valueOf(fileSize), Integer.valueOf(pieceSize)));
+
+            else if(i%4 == 1) {
                 fileSize = param;
-            else if(i%4 == 2)
+            }
+            else if(i%4 == 2) {
                 pieceSize = param;
-            else if(i%4 == 3)
+            }
+            else if(i%4 == 3) {
                 fileKey = param;
-            System.out.println(param + " " + i);
+            }
             i++;
         }
 
         if(i < 5)
             fileList.add(new FilePeerDescriptor(fileName, fileKey, Integer.valueOf(fileSize), Integer.valueOf(pieceSize)));
 
-        for(FilePeerDescriptor file : fileList)
-            System.out.println("Name : " + file.getName() + " && Key : " + file.getKey() + " && Piece Size : "
-                    + file.getPieceSize() + " && File Size : " + file.getFileSize());
         return fileList;
     }
 
@@ -153,7 +154,7 @@ public class Protocol{
             if(subResponse[2] == null)
                 return null;
             String bufferMap = subResponse[2];
-            System.out.println("Buffeer map : " + bufferMap);
+            System.out.println("Buffer map : " + bufferMap);
 
             FilePeerDescriptor file = new FilePeerDescriptor(null, key, 0, 1, null);
             file.getBufferMap().stringToBufferMap(bufferMap);
