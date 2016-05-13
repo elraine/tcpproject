@@ -29,6 +29,7 @@ public class PassiveConnection extends Thread {
 
     private InetSocketAddress host;
     private Selector select;
+    public  SelectionKey selectkey;
 
     public PassiveConnection(String host, int port) {
         System.out.print("host et port : "+ host + " "+ port);
@@ -41,7 +42,7 @@ public class PassiveConnection extends Thread {
             this.select = Selector.open();
             ServerSocketChannel sChannel = createSocketChannel(host);
             //SelectionKey key = sChannel.register(select,sChannel.validOps());
-            sChannel.register(select, sChannel.validOps());
+            selectkey = sChannel.register(select, SelectionKey.OP_ACCEPT);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -51,41 +52,28 @@ public class PassiveConnection extends Thread {
     private ServerSocketChannel createSocketChannel(InetSocketAddress host) throws IOException{
         // Create a non-blocking socket channel
         ServerSocketChannel sChannel = ServerSocketChannel.open();
+        sChannel.bind(host);
         sChannel.configureBlocking(false);
 
         // Send a connection request to the server; this method is non-blocking
-        sChannel.bind(host);
         return sChannel;
     }
 
     @Override
     public void run(){
-        System.out.println("je lance run");
         listen();
     }
 
     private void listen(){
         while(true){
-            int nb;
-
-
-            System.out.println("je run run run");
-
-            System.out.println("selecotr : "+ select.keys() );
             try {
-                System.out.println("j'attends un event");
-                // Wait for an event$
-                 nb = select.select();
-                System.out.println("j'ai select !");
-
+                select.select();
             } catch (IOException e) {
                 System.out.println("exception catch");
                 return;
             }
-            System.out.println("nombre : " + nb);
             // Get list of selection keys with pending events
             Iterator<SelectionKey> it = select.selectedKeys().iterator();
-            System.out.println("plop");
             // Process each key at a time
             while (it.hasNext()) {
                 // Get the selection key
@@ -97,6 +85,7 @@ public class PassiveConnection extends Thread {
                 // interval defined into the configuration file
                 if (selKey.isAcceptable()
                         && select.selectedKeys().size() <= _MAXIMUM_CONNECTED_PEERS) {
+
                     this.accept(selKey);
                 } else if (selKey.isReadable() && selKey.isWritable()) {
                     this.read(selKey);
@@ -108,8 +97,7 @@ public class PassiveConnection extends Thread {
     private void accept(SelectionKey selKey){
         // For an accept to be pending the channel must be a server socket
         // channel.
-        ServerSocketChannel serverSocketChannel = (ServerSocketChannel) selKey
-                .channel();
+        ServerSocketChannel serverSocketChannel = (ServerSocketChannel) selKey.channel();
 
         // Accept the connection and make it non-blocking
         SocketChannel socketChannel;
@@ -219,11 +207,12 @@ public class PassiveConnection extends Thread {
         FilePeerDescriptor concernedFile = FileStorage.getInstance().getFile(key);
 
         // Answer to the partner
-        PassiveConnection.write(sChannel, returnHaveListMessage(concernedFile));
+        write(sChannel, returnHaveListMessage(concernedFile));
     }
 
     public String returnHaveListMessage(FilePeerDescriptor f) {
         // (> interested ) < have
+        System.out.println(f.getBufferMap());
         return "have " + f.getKey() + " " + f.getBufferMap().getStringForm();
     }
 

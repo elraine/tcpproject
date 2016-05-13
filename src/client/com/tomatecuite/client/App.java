@@ -178,10 +178,10 @@ public class App {
         LogWriter.getInstance().peerConnected(TRACKER_HOST,TRACKER_PORT);
         LogWriter.getInstance().peerConnected(PEER_HOST,PEER_PORT);
 
-
         PassiveConnection peerConnector = new PassiveConnection(PEER_HOST, PEER_PORT);
         ActiveConnection trackerConnector = new ActiveConnection(TRACKER_HOST, TRACKER_PORT);
         store = FileStorage.getInstance();
+
         initiateP2T(trackerConnector);
 
         peerConnector.start();
